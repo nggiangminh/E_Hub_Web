@@ -1,0 +1,77 @@
+# Java
+*.class
+*.jar
+*.war
+*.ear
+
+# Maven
+/target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# IntelliJ
+.idea/
+*.iml
+out/
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Lombok
+lombok.config
+
+# Environment
+.env
+
+# Build
+/build/
+
+# Test
+/test-output/
+
+# Others
+*.swp
+*.swo
+
+# Generated
+/generated/
+
+# Spring Boot
+spring.log
+
+# Node
+node_modules/
+
+# Coverage
+coverage/
+
+# Database
+*.db
+*.sqlite
+
+# Static/Template
+src/main/resources/static/
+src/main/resources/templates/
+
+# Application config
+application-*.yml
+application-*.properties
+
+# Flyway
+src/main/resources/db/migration/*.sql
+
+# AWS
+.aws/
+
+# Redis
+redis-data/
+
+# S3
+s3-upload/
+
