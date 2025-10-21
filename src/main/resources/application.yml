@@ -6,10 +6,12 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     show-sql: true
     properties:
       hibernate:
         format_sql: true
-  # Nếu cần cấu hình thêm cho môi trường khác, có thể bổ sung sau
 
+jwt:
+  secret: be55a54bc6fe880334015c5c58bcbc5197060ebc9706fa9110f9af72245b66d8
+  expiration: 86400000

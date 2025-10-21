@@ -84,6 +84,11 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!--Spring security-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
 
         <!-- OpenAPI (Swagger) -->
         <dependency>
@@ -115,6 +120,7 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 
     <build>
