@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ehub
+    username: postgres
+    password: Minh2263@
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  # Nếu cần cấu hình thêm cho môi trường khác, có thể bổ sung sau
+

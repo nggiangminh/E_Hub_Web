@@ -1,27 +1,16 @@
 package com.elearning.e_hub.module.user.service;
 
-import com.elearning.e_hub.module.user.repository.UserRepository;
+import com.elearning.e_hub.module.user.dto.UpdateUserRequest;
+import com.elearning.e_hub.module.user.dto.UserDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-public class UserService {
-
-    public void getAllUsers() {
-        // Implementation to get all users
-    }
-
-    public void  getUserByEmail(String email) {
-    }
-
-    public void getUserById(Long id) {
-    }
-
-    public void createUser() {
-    }
-
-    public void updateUser() {
-
-    }
-
-    public void deleteUser() {
-
-    }
+public interface UserService {
+    UserDto getUserById(Long id);
+    UserDto getUserByEmail(String email);
+    Page<UserDto> getAllUsers(Pageable pageable);
+    UserDto updateUser(Long id, UpdateUserRequest request);
+    void deleteUser(Long id);
+    UserDto getCurrentUser();
+    void updatePassword(Long id, String oldPassword, String newPassword);
 }

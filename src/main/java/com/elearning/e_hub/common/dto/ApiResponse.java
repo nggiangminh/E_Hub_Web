@@ -11,6 +11,5 @@ public class ApiResponse<T> {
     private String result;    // SUCCESS hoặc ERROR
     private String message;   // thông báo
     private T data;
-    private String timestamp;// dữ liệu trả về
 }
 

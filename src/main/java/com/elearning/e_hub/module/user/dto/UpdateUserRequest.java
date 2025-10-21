@@ -1,16 +1,26 @@
 package com.elearning.e_hub.module.user.dto;
 
-import com.elearning.e_hub.common.entity.Status;
-import jakarta.persistence.Column;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
 
-public class UpdateUserRequest {
+public record UpdateUserRequest(
+    @Size(min = 2, max = 100, message = "Họ tên phải từ 2-100 ký tự")
+    String fullName,
 
-    @Column(nullable = false, unique = true)
-    private String email;
+    String avatarUrl,
 
-    @Column(nullable = false)
-    private String password;
+    @Size(max = 500, message = "Bio không được vượt quá 500 ký tự")
+    String bio,
 
-    @Column(nullable = false)
-    private Status status;
+    @Email(message = "Invalid email format")
+    String email
+) {
+    public UpdateUserRequest {
+        if (fullName == null || fullName.isBlank()) {
+            throw new IllegalArgumentException("Họ tên không được để trống");
+        }
+        if (email != null) {
+            email = email.trim().toLowerCase();
+        }
+    }
 }

@@ -2,32 +2,36 @@ package com.elearning.e_hub.module.user.dto;
 
 import com.elearning.e_hub.common.entity.Role;
 import com.elearning.e_hub.common.entity.Status;
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class UserDto {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public record UserDto(
+    Long id,
 
-    @Column(nullable = false, unique = true)
-    private String email;
+    String fullName,
 
-    @Column(nullable = false)
-    private String password;
+    String email,
 
-    @Column(nullable = false)
-    private Role role;
+    Role role,
 
-    @Column(nullable = false)
-    private Status status;
+    Status status,
+
+    LocalDateTime lastLoginAt,
+
+    String avatarUrl,
+
+    String bio,
+
+    LocalDateTime createdAt,
+
+    LocalDateTime updatedAt
+) {
+    public UserDto {
+        if (fullName == null || fullName.isBlank()) {
+            throw new IllegalArgumentException("Họ tên không được để trống");
+        }
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email không được để trống");
+        }
+    }
 }
