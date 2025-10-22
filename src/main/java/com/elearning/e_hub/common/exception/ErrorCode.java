@@ -13,7 +13,11 @@ public enum ErrorCode {
     UNAUTHORIZED_ACCESS(403, "course.unauthorized"),
     // Common errors
     VALIDATION_ERROR(400, "common.validation_error"),
-    INTERNAL_ERROR(500, "common.internal_error");
+
+    INTERNAL_ERROR(500, "common.internal_error"),
+
+    INTERNAL_SERVER_ERROR(500, "common.internal_error");
+
 
     private final int status;
     private final String code;

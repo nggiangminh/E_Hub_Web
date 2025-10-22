@@ -11,7 +11,7 @@ import java.util.List;
 
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Long> {
-    List<Course> findByInstructorId(Long instructorId);
+    List<Course> findByAuthor(String author);
 
     List<Course> findByStatus(CourseStatus status);
 

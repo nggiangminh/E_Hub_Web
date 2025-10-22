@@ -3,6 +3,7 @@ package com.elearning.e_hub.module.course.dto;
 import com.elearning.e_hub.module.course.enums.CourseLevel;
 import com.elearning.e_hub.module.course.enums.CourseStatus;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public record CourseResponse(
@@ -11,7 +12,8 @@ public record CourseResponse(
         String description,
         CourseLevel level,
         CourseStatus status,
-        Long instructorId,
+        String author,
+        BigDecimal price,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {}

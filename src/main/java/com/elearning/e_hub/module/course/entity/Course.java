@@ -5,11 +5,14 @@ import com.elearning.e_hub.module.course.enums.CourseLevel;
 import com.elearning.e_hub.module.course.enums.CourseStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "courses")
@@ -21,24 +24,25 @@ public class Course extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long Id;
+    private Long id;
 
     @Size(min = 1, max = 100)
     @NotBlank
     private String title;
 
     @Size(max = 1000)
+    @NotBlank
     private String description;
-
-    private Long instructorId;
-
-    @Enumerated(EnumType.STRING)
-    private CourseStatus status;
 
     @Enumerated(EnumType.STRING)
     private CourseLevel level;
 
-    @NotBlank
-    private Double price;
+    @Enumerated(EnumType.STRING)
+    private CourseStatus status;
 
+    @NotBlank
+    private String author;
+
+    @NotNull
+    private BigDecimal price;
 }

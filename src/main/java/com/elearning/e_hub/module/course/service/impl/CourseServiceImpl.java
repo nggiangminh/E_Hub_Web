@@ -29,7 +29,7 @@ public class CourseServiceImpl implements CourseService {
         course.setDescription(courseRequest.description());
         course.setLevel(courseRequest.level());
         course.setStatus(courseRequest.status());
-        course.setInstructorId(1L);
+        course.setAuthor(courseRequest.author());
         course.setPrice(courseRequest.price());
         Course saved = courseRepository.save(course);
         return CourseMapper.toResponse(saved);
