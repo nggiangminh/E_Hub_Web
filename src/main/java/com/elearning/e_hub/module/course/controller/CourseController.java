@@ -7,8 +7,7 @@ import com.elearning.e_hub.module.course.service.CourseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+   import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -32,7 +31,7 @@ public class CourseController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<CourseResponse>> createCourse(
             @Valid @RequestBody CourseRequest request
     ) {
@@ -41,7 +40,7 @@ public class CourseController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<CourseResponse>> updateCourse(
             @PathVariable Long id,
             @Valid @RequestBody CourseRequest request
@@ -51,7 +50,7 @@ public class CourseController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteCourse(@PathVariable Long id) {
         courseService.deleteCourse(id);
         return ResponseEntity.ok(new ApiResponse<>("SUCCESS", "Xóa khóa học thành công", null));
