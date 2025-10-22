@@ -7,13 +7,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-public class CustomUserDetails implements UserDetails
-{
+public class CustomUserDetails implements UserDetails {
     private final User user;
 
     public CustomUserDetails(User user) {
         this.user = user;
     }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();
@@ -31,21 +31,26 @@ public class CustomUserDetails implements UserDetails
 
     @Override
     public boolean isAccountNonExpired() {
-        return false;
+        return true; // Tài khoản không bao giờ hết hạn
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return false;
+        return true; // Tài khoản không bị khóa
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return false;
+        return true; // Credentials không bao giờ hết hạn
     }
 
     @Override
     public boolean isEnabled() {
-        return false;
+        return true; // Tài khoản luôn được kích hoạt
+    }
+
+    // Helper method để lấy user gốc nếu cần
+    public User getUser() {
+        return user;
     }
 }

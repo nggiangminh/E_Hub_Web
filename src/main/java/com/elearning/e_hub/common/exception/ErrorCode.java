@@ -4,6 +4,7 @@ public enum ErrorCode {
     // Auth errors
     INVALID_CREDENTIALS(401, "auth.invalid_credentials"),
     TOKEN_EXPIRED(401, "auth.token_expired"),
+    INVALID_TOKEN(401, "auth.invalid_token"),
     // User errors
     USER_NOT_FOUND(404, "user.not_found"),
     EMAIL_ALREADY_EXISTS(409, "user.email_exists"),
