@@ -25,14 +25,14 @@ public class Session {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "token", nullable = false, unique = true, length = 512)
+    @Column(name = "token", unique = true, length = 512)
     private String token;
 
-    @Column(name = "expire_at", nullable = false)
+    @Column(name = "expire_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime expireAt;
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+    @Column(name = "is_active")
+    private Boolean isActive = true ;
 
 }
