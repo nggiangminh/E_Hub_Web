@@ -75,4 +75,4 @@ redis-data/
 # S3
 s3-upload/
 
-.github
+.github/
