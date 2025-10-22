@@ -127,56 +127,67 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @Transactional
     public void forgotPassword(String email) {
-        // Kiểm tra user tồn tại
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND, "Email không tồn tại trong hệ thống"));
+        try {
+            log.info("Bắt đầu xử lý forgot-password cho email: {}", email);
 
-        // Tạo token reset password
-        String resetToken = UUID.randomUUID().toString();
-        String redisKey = PASSWORD_RESET_PREFIX + resetToken;
+            User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    log.warn("Không tìm thấy user với email: {}", email);
+                    return new AppException(ErrorCode.USER_NOT_FOUND, "Không tìm thấy người dùng với email đã cung cấp");
+                });
+            log.info("Tìm thấy user: {}", user.getEmail());
 
-        // Lưu token vào Redis với TTL 15 phút
-        redisTemplate.opsForValue().set(redisKey, user.getEmail(), PASSWORD_RESET_TTL);
+            // Generate reset token
+            String resetToken = UUID.randomUUID().toString();
+            log.info("Đã tạo reset token");
 
-        // Gửi email reset password - Sửa tên phương thức cho đúng
-        emailService.sendPasswordResetEmail(user.getEmail(), resetToken);
+            try {
+                // Lưu token vào Redis với TTL
+                redisTemplate.opsForValue()
+                    .set(PASSWORD_RESET_PREFIX + resetToken, user.getEmail(), PASSWORD_RESET_TTL);
+                log.info("Đã lưu token vào Redis");
+            } catch (Exception e) {
+                log.error("Lỗi khi lưu token vào Redis", e);
+
+            }
+
+            try {
+                // Gửi email reset password
+                emailService.sendPasswordResetEmail(user.getEmail(), resetToken);
+                log.info("Đã gửi email khôi phục mật khẩu thành công");
+            } catch (Exception e) {
+                log.error("Lỗi khi gửi email", e);
+                throw new AppException(ErrorCode.INTERNAL_ERROR, "Lỗi khi gửi email khôi phục mật khẩu");
+            }
+        } catch (Exception e) {
+            log.error("Lỗi không xác định trong forgot-password", e);
+            if (e instanceof AppException) {
+                throw e;
+            }
+            throw new AppException(ErrorCode.INTERNAL_ERROR, "Có lỗi xảy ra khi xử lý yêu cầu");
+        }
     }
 
     @Override
     @Transactional
     public void resetPassword(String token, String newPassword) {
-        String redisKey = PASSWORD_RESET_PREFIX + token;
-        log.info("Checking reset token: {}", redisKey);
-
-        String email = redisTemplate.opsForValue().get(redisKey);
-        log.info("Found email from token: {}", email);
-
+        // Validate token from Redis
+        String email = redisTemplate.opsForValue().get(PASSWORD_RESET_PREFIX + token);
         if (email == null) {
-            log.warn("Token not found or expired: {}", token);
-            throw new AppException(ErrorCode.INVALID_TOKEN, "Token không hợp lệ hoặc đã hết hạn");
+            throw new AppException(ErrorCode.TOKEN_EXPIRED, "Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn");
         }
 
-        try {
-            // Cập nhật mật khẩu mới
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND, "Không tìm thấy người dùng"));
+        // Update password
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND, "Không tìm thấy người dùng với email đã cung cấp"));
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
 
-            user.setPassword(passwordEncoder.encode(newPassword));
-            userRepository.save(user);
-            log.info("Password updated successfully for user: {}", email);
+        // Delete reset token
+        redisTemplate.delete(PASSWORD_RESET_PREFIX + token);
 
-            // Xóa token trong Redis
-            redisTemplate.delete(redisKey);
-            log.info("Reset token deleted from Redis: {}", redisKey);
-
-            // Vô hiệu hóa tất cả session hiện tại của user
-            sessionRepository.deactivateAllUserSessions(user.getId());
-            log.info("All sessions deactivated for user: {}", email);
-        } catch (Exception e) {
-            log.error("Error during password reset: ", e);
-            throw new AppException(ErrorCode.INTERNAL_ERROR, "Có lỗi xảy ra khi cập nhật mật khẩu: " + e.getMessage());
-        }
+        // Invalidate all sessions
+        sessionRepository.deleteByUserId(user.getId());
     }
 }

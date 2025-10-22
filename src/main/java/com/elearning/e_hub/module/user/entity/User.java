@@ -49,3 +49,4 @@ public class User extends BaseEntity {
     @Column(columnDefinition = "text")
     private String bio;
 }
+
