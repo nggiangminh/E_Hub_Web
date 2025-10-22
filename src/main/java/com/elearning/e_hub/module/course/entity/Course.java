@@ -38,4 +38,7 @@ public class Course extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private CourseLevel level;
 
+    @NotBlank
+    private Double price;
+
 }

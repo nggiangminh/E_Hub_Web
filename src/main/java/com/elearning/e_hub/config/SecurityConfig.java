@@ -1,8 +1,8 @@
 // src/main/java/com/elearning/e_hub/config/SecurityConfig.java
 package com.elearning.e_hub.config;
 
-import com.elearning.e_hub.security.JwtAuthenticationFilter;
 import com.elearning.e_hub.security.JwtAuthenticationEntryPoint;
+import com.elearning.e_hub.security.JwtAuthenticationFilter;
 import com.elearning.e_hub.security.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -46,7 +46,8 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/auth/**").permitAll()
+                    .requestMatchers("/api/v1/auth/**").permitAll()
+                    .requestMatchers("/api/v1/courses/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
