@@ -33,7 +33,7 @@ public class LessonServiceImpl implements LessonService {
     }
 
     @Override
-    public LessonResponse getLesson(Long id) {
+    public LessonResponse getLessonById(Long id) {
         Lesson lesson = lessonRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND, LESSON_NOT_FOUND));
         return LessonMapper.toResponse(lesson);
     }
@@ -44,7 +44,7 @@ public class LessonServiceImpl implements LessonService {
     }
 
     @Override
-    public List<LessonResponse> getAllLesson() {
+    public List<LessonResponse> getAllLessons() {
         return lessonRepository.findAll().stream()
                 .map(LessonMapper::toResponse)
                 .toList();

@@ -7,12 +7,11 @@ import java.util.List;
 
 public interface LessonService {
     LessonResponse createLesson(LessonRequest request);
-
-    LessonResponse getLesson(Long id);
+    LessonResponse getLessonById(Long id);
 
     List<LessonResponse> getLessonsByChapter(Long chapterId);
 
-    List<LessonResponse> getAllLesson();
+    List<LessonResponse> getAllLessons();
 
     LessonResponse updateLesson(Long id, LessonRequest request);
 
