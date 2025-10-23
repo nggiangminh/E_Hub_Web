@@ -11,7 +11,10 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "lesson")
+@Table(name = "lessons", indexes = {
+    @Index(name = "idx_lesson_chapter", columnList = "chapter_id"),
+    @Index(name = "idx_lesson_order", columnList = "chapter_id, order_index")
+})
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
@@ -22,22 +25,29 @@ public class Lesson extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
-    @Size(min = 1, max = 100)
+    @NotBlank(message = "Tiêu đề không được để trống")
+    @Size(min = 1, max = 100, message = "Tiêu đề phải từ 1-100 ký tự")
+    @Column(nullable = false)
     private String title;
 
     @Lob
+    @Column(columnDefinition = "TEXT")
     private String content;
 
     @Enumerated(EnumType.STRING)
-    private LessonType lessonType;
+    @Column(nullable = false)
+    private LessonType lessonType = LessonType.VIDEO; // Mặc định là video
 
-    @Size(max = 512)
+    @Size(max = 512, message = "URL video không được quá 512 ký tự")
     private String videoUrl;
 
-    private Integer duration;
+    @Column(nullable = false)
+    private Integer duration = 0; // Thời lượng tính bằng giây
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "chapter_id")
+    @Column(name = "order_index", nullable = false)
+    private Integer orderIndex = 0;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "chapter_id", nullable = false)
     private Chapter chapter;
 }

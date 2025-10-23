@@ -12,35 +12,75 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/v1/course/{courseId}/chapters/{chapterId}/lessons")
+@RequestMapping("/api/v1/courses/{courseId}/chapters/{chapterId}/lessons")
 @RequiredArgsConstructor
 public class LessonController {
 
     private final LessonService lessonService;
-    private static final String ERROR = "ERROR";
+    private static final String SUCCESS = "SUCCESS";
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<LessonResponse>>> getAllLessons() {
-        List<LessonResponse> lessons = lessonService.getAllLessons();
-        return ResponseEntity.ok(new ApiResponse<>(ERROR, "List of lesson", lessons));
+    public ResponseEntity<ApiResponse<List<LessonResponse>>> getAllLessons(
+            @PathVariable Long courseId,
+            @PathVariable Long chapterId) {
+        try {
+            List<LessonResponse> lessons = lessonService.getLessonsByChapter(courseId, chapterId);
+            return ResponseEntity.ok(new ApiResponse<>(SUCCESS, "Danh sách bài học", lessons));
+        } catch (Exception e) {
+            throw e;
+        }
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<LessonResponse>> create(LessonRequest request) {
-        LessonResponse lessonResponse = lessonService.createLesson(request);
-        return ResponseEntity.ok(new ApiResponse<>(ERROR, "Created response", lessonResponse));
+    public ResponseEntity<ApiResponse<LessonResponse>> createLesson(
+            @PathVariable Long courseId,
+            @PathVariable Long chapterId,
+            @Valid @RequestBody LessonRequest request) {
+        try {
+            LessonResponse lessonResponse = lessonService.createLesson(courseId, chapterId, request);
+            return ResponseEntity.ok(new ApiResponse<>(SUCCESS, "Tạo bài học thành công", lessonResponse));
+        } catch (Exception e) {
+            throw e;
+        }
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<LessonResponse>> getLessonById(@PathVariable Long id) {
-        LessonResponse lessonResponse = lessonService.getLessonById(id);
-        return ResponseEntity.ok(new ApiResponse<>(ERROR, "get lesson by id", lessonResponse));
+    @GetMapping("/{lessonId}")
+    public ResponseEntity<ApiResponse<LessonResponse>> getLessonById(
+            @PathVariable Long courseId,
+            @PathVariable Long chapterId,
+            @PathVariable Long lessonId) {
+        try {
+            LessonResponse lessonResponse = lessonService.getLessonById(courseId, chapterId, lessonId);
+            return ResponseEntity.ok(new ApiResponse<>(SUCCESS, "Chi tiết bài học", lessonResponse));
+        } catch (Exception e) {
+            throw e;
+        }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<LessonResponse>> updateLesson(@PathVariable Long id, @Valid @RequestBody LessonRequest request) {
-        LessonResponse lessonResponse = lessonService.updateLesson(id, request);
-        return ResponseEntity.ok(new ApiResponse<>(ERROR, "successfully updated", lessonResponse));
+    @PutMapping("/{lessonId}")
+    public ResponseEntity<ApiResponse<LessonResponse>> updateLesson(
+            @PathVariable Long courseId,
+            @PathVariable Long chapterId,
+            @PathVariable Long lessonId,
+            @Valid @RequestBody LessonRequest request) {
+        try {
+            LessonResponse lessonResponse = lessonService.updateLesson(courseId, chapterId, lessonId, request);
+            return ResponseEntity.ok(new ApiResponse<>(SUCCESS, "Cập nhật bài học thành công", lessonResponse));
+        } catch (Exception e) {
+            throw e;
+        }
     }
 
+    @DeleteMapping("/{lessonId}")
+    public ResponseEntity<ApiResponse<Void>> deleteLesson(
+            @PathVariable Long courseId,
+            @PathVariable Long chapterId,
+            @PathVariable Long lessonId) {
+        try {
+            lessonService.deleteLesson(courseId, chapterId, lessonId);
+            return ResponseEntity.ok(new ApiResponse<>(SUCCESS, "Xóa bài học thành công", null));
+        } catch (Exception e) {
+            throw e;
+        }
+    }
 }

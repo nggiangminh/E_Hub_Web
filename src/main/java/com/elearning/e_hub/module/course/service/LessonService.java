@@ -6,15 +6,14 @@ import com.elearning.e_hub.module.course.dto.LessonResponse;
 import java.util.List;
 
 public interface LessonService {
-    LessonResponse createLesson(LessonRequest request);
-    LessonResponse getLessonById(Long id);
+    LessonResponse createLesson(Long courseId, Long chapterId, LessonRequest request);
 
-    List<LessonResponse> getLessonsByChapter(Long chapterId);
+    LessonResponse getLessonById(Long courseId, Long chapterId, Long lessonId);
 
-    List<LessonResponse> getAllLessons();
+    List<LessonResponse> getLessonsByChapter(Long courseId, Long chapterId);
 
-    LessonResponse updateLesson(Long id, LessonRequest request);
+    LessonResponse updateLesson(Long courseId, Long chapterId, Long lessonId, LessonRequest request);
 
-    void deleteLesson(Long id);
+    void deleteLesson(Long courseId, Long chapterId, Long lessonId);
 }
 

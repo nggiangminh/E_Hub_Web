@@ -10,42 +10,34 @@ public class LessonMapper {
         // Prevent instantiation
     }
 
-    public static Lesson toEntity(LessonRequest request) {
-        if (request == null) {
-            throw new IllegalArgumentException("LessonRequest cannot be null");
-        }
-
-        Lesson lesson = new Lesson();
-        updateFromRequest(lesson, request);
-        return lesson;
-    }
-
     public static void updateFromRequest(Lesson lesson, LessonRequest request) {
         if (lesson == null || request == null) {
-            throw new IllegalArgumentException("Lesson and LessonRequest cannot be null");
+            throw new IllegalArgumentException("Lesson và LessonRequest không được null");
         }
 
-        try {
-            lesson.setTitle(request.title());
-            lesson.setContent(request.content());
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Error updating course: " + e.getMessage());
-        }
+        lesson.setTitle(request.title());
+        lesson.setContent(request.content());
+        lesson.setLessonType(request.lessonType());
+        lesson.setVideoUrl(request.videoUrl());
+        lesson.setDuration(request.duration());
+        lesson.setOrderIndex(request.orderIndex());
     }
 
     public static LessonResponse toResponse(Lesson lesson) {
         if (lesson == null) {
-            throw new IllegalArgumentException("Course cannot be null");
+            throw new IllegalArgumentException("Lesson không được null");
         }
 
         return new LessonResponse(
                 lesson.getId(),
                 lesson.getTitle(),
                 lesson.getLessonType(),
-                lesson.getContent(),
                 lesson.getVideoUrl(),
+                lesson.getContent(),
                 lesson.getDuration(),
-                lesson.getChapter(),
+                lesson.getOrderIndex(),
+                lesson.getChapter().getId(),
+                lesson.getChapter().getCourse().getId(),
                 lesson.getCreatedAt(),
                 lesson.getUpdatedAt()
         );

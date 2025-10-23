@@ -12,6 +12,7 @@ public enum ErrorCode {
     COURSE_NOT_FOUND(404, "course.not_found"),
     UNAUTHORIZED_ACCESS(403, "course.unauthorized"),
     CHAPTER_NOT_FOUND(404, "chapter.not_found"),
+    LESSON_NOT_FOUND(404, "lesson.not_found"),
     // Common errors
     VALIDATION_ERROR(400, "common.validation_error"),
 
