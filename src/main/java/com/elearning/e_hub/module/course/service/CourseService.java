@@ -2,7 +2,6 @@ package com.elearning.e_hub.module.course.service;
 
 import com.elearning.e_hub.module.course.dto.CourseRequest;
 import com.elearning.e_hub.module.course.dto.CourseResponse;
-import com.elearning.e_hub.module.course.entity.Course;
 
 import java.util.List;
 
