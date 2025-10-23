@@ -7,7 +7,7 @@ import com.elearning.e_hub.module.course.service.CourseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-   import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -54,5 +54,11 @@ public class CourseController {
     public ResponseEntity<ApiResponse<Void>> deleteCourse(@PathVariable Long id) {
         courseService.deleteCourse(id);
         return ResponseEntity.ok(new ApiResponse<>("SUCCESS", "Xóa khóa học thành công", null));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<List<CourseResponse>>> searchCourses(@RequestParam String keyword) {
+        List<CourseResponse> results = courseService.searchCourses(keyword);
+        return ResponseEntity.ok(new ApiResponse<>("SUCCESS", "Tìm kiếm khóa học thành công", results));
     }
 }
