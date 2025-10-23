@@ -13,7 +13,8 @@ public interface ChapterService {
 
     void deleteChapter(Long id);
 
-    ChapterResponse getChapterByCourse(Long courseId);
+    ChapterResponse getChapterById(Long courseId);
 
-    List<Chapter> getAllChapters(Integer id);
+    List<ChapterResponse> getAllChapters();
+
 }

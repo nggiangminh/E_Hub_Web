@@ -5,16 +5,26 @@ import com.elearning.e_hub.module.course.dto.ChapterRequest;
 import com.elearning.e_hub.module.course.dto.ChapterResponse;
 import com.elearning.e_hub.module.course.service.ChapterService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("api/v1/course/{id}/chapters")
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class ChapterController {
-    private final String ERROR = "ERROR";
-    @Autowired
-    private ChapterService chapterService;
+    private static final String ERROR = "ERROR";
+
+    private final ChapterService chapterService;
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<ChapterResponse>>> getAllChapters() {
+        List<ChapterResponse> chapters = chapterService.getAllChapters();
+        return ResponseEntity.ok(new ApiResponse<>(ERROR, "List of chapters", chapters));
+    }
 
     @PostMapping
     public ResponseEntity<ApiResponse<ChapterResponse>> createChapter(ChapterRequest request) {
@@ -30,7 +40,7 @@ public class ChapterController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ChapterResponse>> getChapter(@PathVariable Long id) {
-        ChapterResponse response = chapterService.getChapterByCourse(id);
+        ChapterResponse response = chapterService.getChapterById(id);
         return ResponseEntity.ok(new ApiResponse<>(ERROR, "Chapter detail", response));
     }
 
