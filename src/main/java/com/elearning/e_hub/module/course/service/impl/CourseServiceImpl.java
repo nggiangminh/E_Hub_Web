@@ -14,8 +14,8 @@ import java.util.List;
 
 @Service
 public class CourseServiceImpl implements CourseService {
-
     private static final String COURSE_NOT_FOUND = "Course not found";
+
     private final CourseRepository courseRepository;
 
     public CourseServiceImpl(CourseRepository courseRepository) {
