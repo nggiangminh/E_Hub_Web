@@ -34,7 +34,7 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
      * Kiểm tra xem lesson có thuộc về chapter và course không
      */
     @Query("SELECT CASE WHEN COUNT(l) > 0 THEN true ELSE false END FROM Lesson l " +
-           "WHERE l.id = :lessonId AND l.chapter.id = :chapterId AND l.chapter.course.id = :courseId")
+            "WHERE l.id = :lessonId AND l.chapter.id = :chapterId AND l.chapter.course.id = :courseId")
     boolean existsByIdAndChapterIdAndCourseId(
             @Param("lessonId") Long lessonId,
             @Param("chapterId") Long chapterId,
@@ -45,9 +45,9 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
      * Đảm bảo lesson thuộc về chapter và chapter thuộc về course
      */
     @Query("SELECT l FROM Lesson l " +
-           "WHERE l.id = :lessonId " +
-           "AND l.chapter.id = :chapterId " +
-           "AND l.chapter.course.id = :courseId")
+            "WHERE l.id = :lessonId " +
+            "AND l.chapter.id = :chapterId " +
+            "AND l.chapter.course.id = :courseId")
     Optional<Lesson> findByIdAndChapter_IdAndChapter_Course_Id(
             @Param("lessonId") Long lessonId,
             @Param("chapterId") Long chapterId,

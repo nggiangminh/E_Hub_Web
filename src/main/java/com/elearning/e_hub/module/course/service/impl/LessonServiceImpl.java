@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -99,4 +100,31 @@ public class LessonServiceImpl implements LessonService {
 
         return lessonMapper.toResponse(lesson);
     }
+
+    @Override
+    @Transactional
+    public LessonResponse uploadContent(Long courseId, Long chapterId, Long lessonId, Set<String> resources) {
+        Lesson lesson = lessonRepository.findByIdAndChapter_IdAndChapter_Course_Id(lessonId, chapterId, courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND));
+        lesson.setResources(resources);
+        lessonRepository.save(lesson);
+        return lessonMapper.toResponse(lesson);
+    }
+
+    @Override
+    public LessonResponse getContent(Long courseId, Long chapterId, Long lessonId) {
+        Lesson lesson = lessonRepository.findByIdAndChapter_IdAndChapter_Course_Id(lessonId, chapterId, courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND));
+        return lessonMapper.toResponse(lesson);
+    }
+
+    @Override
+    @Transactional
+    public void deleteContent(Long courseId, Long chapterId, Long lessonId) {
+        Lesson lesson = lessonRepository.findByIdAndChapter_IdAndChapter_Course_Id(lessonId, chapterId, courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND));
+        lesson.getResources().clear();
+        lessonRepository.save(lesson);
+    }
+
 }

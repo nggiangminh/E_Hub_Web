@@ -15,8 +15,8 @@ import java.util.Set;
 
 @Entity
 @Table(name = "lessons", indexes = {
-    @Index(name = "idx_lesson_chapter", columnList = "chapter_id"),
-    @Index(name = "idx_lesson_order", columnList = "chapter_id, order_index")
+        @Index(name = "idx_lesson_chapter", columnList = "chapter_id"),
+        @Index(name = "idx_lesson_order", columnList = "chapter_id, order_index")
 })
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -67,7 +67,7 @@ public class Lesson extends BaseEntity {
 
     @ElementCollection
     @CollectionTable(name = "lesson_resources",
-        joinColumns = @JoinColumn(name = "lesson_id"))
+            joinColumns = @JoinColumn(name = "lesson_id"))
     @Column(name = "resource_url")
     private Set<String> resources = new HashSet<>();
 }
