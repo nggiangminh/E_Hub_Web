@@ -10,6 +10,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(name = "lessons", indexes = {
     @Index(name = "idx_lesson_chapter", columnList = "chapter_id"),
@@ -36,13 +39,13 @@ public class Lesson extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private LessonType lessonType = LessonType.VIDEO; // Mặc định là video
+    private LessonType lessonType = LessonType.DOCUMENT;
 
     @Size(max = 512, message = "URL video không được quá 512 ký tự")
     private String videoUrl;
 
     @Column(nullable = false)
-    private Integer duration = 0; // Thời lượng tính bằng giây
+    private Integer durationSeconds = 0;
 
     @Column(name = "order_index", nullable = false)
     private Integer orderIndex = 0;
@@ -50,4 +53,21 @@ public class Lesson extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "chapter_id", nullable = false)
     private Chapter chapter;
+
+    @Size(max = 500, message = "Mô tả không được quá 500 ký tự")
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Size(max = 200, message = "Content preview không được quá 200 ký tự")
+    @Column(name = "content_preview")
+    private String contentPreview;
+
+    @Column(nullable = false)
+    private Boolean published = false;
+
+    @ElementCollection
+    @CollectionTable(name = "lesson_resources",
+        joinColumns = @JoinColumn(name = "lesson_id"))
+    @Column(name = "resource_url")
+    private Set<String> resources = new HashSet<>();
 }

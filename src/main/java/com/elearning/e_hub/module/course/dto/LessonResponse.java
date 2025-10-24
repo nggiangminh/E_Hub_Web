@@ -2,31 +2,48 @@ package com.elearning.e_hub.module.course.dto;
 
 import com.elearning.e_hub.module.course.enums.LessonType;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 public record LessonResponse(
-        Long id,
-        String title,
-        LessonType lessonType,
-        String videoUrl,
-        String content,
-        Integer duration,
-        Integer orderIndex,
-        Long chapterId,
-        Long courseId,
+    @NotNull Long id,
 
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-        LocalDateTime createdAt,
+    @NotBlank String title,
 
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-        LocalDateTime updatedAt
+    String description,
+
+    String content,
+
+    String contentPreview,
+
+    @NotNull LessonType lessonType,
+
+    String videoUrl,
+
+    Integer durationSeconds,
+
+    Integer orderIndex,
+
+    @NotNull Long chapterId,
+
+    Boolean published,
+
+    Set<String> resources,
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    LocalDateTime createdAt,
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    LocalDateTime updatedAt
 ) {
+    // Compact constructor để validate và set default values
     public LessonResponse {
-        // Validate và set giá trị mặc định
-        if (duration == null) duration = 0;
+        if (durationSeconds == null) durationSeconds = 0;
         if (orderIndex == null) orderIndex = 0;
-        if (content == null) content = "";
-        if (videoUrl == null) videoUrl = "";
+        if (published == null) published = false;
+        if (resources == null) resources = Set.of();
     }
 }

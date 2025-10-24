@@ -5,7 +5,6 @@ import com.elearning.e_hub.common.exception.ErrorCode;
 import com.elearning.e_hub.module.course.dto.LessonRequest;
 import com.elearning.e_hub.module.course.dto.LessonResponse;
 import com.elearning.e_hub.module.course.entity.Chapter;
-import com.elearning.e_hub.module.course.entity.Course;
 import com.elearning.e_hub.module.course.entity.Lesson;
 import com.elearning.e_hub.module.course.mapper.LessonMapper;
 import com.elearning.e_hub.module.course.repository.ChapterRepository;
@@ -20,93 +19,84 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class LessonServiceImpl implements LessonService {
 
     private final LessonRepository lessonRepository;
     private final ChapterRepository chapterRepository;
     private final CourseRepository courseRepository;
+    private final LessonMapper lessonMapper;
 
     @Override
+    @Transactional
     public LessonResponse createLesson(Long courseId, Long chapterId, LessonRequest request) {
-        // Kiểm tra course có tồn tại không
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND, "Course not found with id: " + courseId));
-
-        // Kiểm tra chapter có thuộc course này không
         Chapter chapter = chapterRepository.findByIdAndCourseId(chapterId, courseId)
-                .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND, "Chapter not found with id: " + chapterId));
+                .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND));
 
-        Lesson lesson = new Lesson();
-        lesson.setTitle(request.title());
-        lesson.setContent(request.content());
-        lesson.setVideoUrl(request.videoUrl());
-        lesson.setDuration(request.duration());
-        lesson.setChapter(chapter);
+        Lesson lesson = lessonMapper.toEntity(request, chapter);
+        lesson = lessonRepository.save(lesson);
 
-        Lesson saved = lessonRepository.save(lesson);
-        return LessonMapper.toResponse(saved);
+        return lessonMapper.toResponse(lesson);
     }
 
     @Override
     public LessonResponse getLessonById(Long courseId, Long chapterId, Long lessonId) {
-        courseRepository.findById(courseId)
-                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND, "Course not found with id: " + courseId));
+        Lesson lesson = lessonRepository.findByIdAndChapter_IdAndChapter_Course_Id(lessonId, chapterId, courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND));
 
-        chapterRepository.findByIdAndCourseId(chapterId, courseId)
-                .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND, "Chapter not found with id: " + chapterId));
-
-        Lesson lesson = lessonRepository.findByIdAndChapterId(lessonId, chapterId)
-                .orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND, "Lesson not found with id: " + lessonId));
-
-        return LessonMapper.toResponse(lesson);
+        return lessonMapper.toResponse(lesson);
     }
 
     @Override
-    public List<LessonResponse> getLessonsByChapter(Long courseId, Long chapterId) {
-        courseRepository.findById(courseId)
-                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND, "Course not found with id: " + courseId));
-
-        chapterRepository.findByIdAndCourseId(chapterId, courseId)
-                .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND, "Chapter not found with id: " + chapterId));
-
+    public List<LessonResponse> getLessonsByChapterId(Long courseId, Long chapterId) {
         return lessonRepository.findByChapterIdOrderByOrderIndexAsc(chapterId)
                 .stream()
-                .map(LessonMapper::toResponse)
+                .map(lessonMapper::toResponse)
                 .toList();
     }
 
     @Override
+    @Transactional
     public LessonResponse updateLesson(Long courseId, Long chapterId, Long lessonId, LessonRequest request) {
-        courseRepository.findById(courseId)
-                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND, "Course not found with id: " + courseId));
+        Lesson lesson = lessonRepository.findByIdAndChapter_IdAndChapter_Course_Id(lessonId, chapterId, courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND));
 
-        chapterRepository.findByIdAndCourseId(chapterId, courseId)
-                .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND, "Chapter not found with id: " + chapterId));
+        lessonMapper.updateEntityFromRequest(lesson, request);
+        lesson = lessonRepository.save(lesson);
 
-        Lesson lesson = lessonRepository.findByIdAndChapterId(lessonId, chapterId)
-                .orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND, "Lesson not found with id: " + lessonId));
-
-        lesson.setTitle(request.title());
-        lesson.setContent(request.content());
-        lesson.setVideoUrl(request.videoUrl());
-        lesson.setDuration(request.duration());
-
-        Lesson updated = lessonRepository.save(lesson);
-        return LessonMapper.toResponse(updated);
+        return lessonMapper.toResponse(lesson);
     }
 
     @Override
+    @Transactional
     public void deleteLesson(Long courseId, Long chapterId, Long lessonId) {
-        courseRepository.findById(courseId)
-                .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND, "Course not found with id: " + courseId));
-
-        chapterRepository.findByIdAndCourseId(chapterId, courseId)
-                .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND, "Chapter not found with id: " + chapterId));
-
-        Lesson lesson = lessonRepository.findByIdAndChapterId(lessonId, chapterId)
-                .orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND, "Lesson not found with id: " + lessonId));
+        Lesson lesson = lessonRepository.findByIdAndChapter_IdAndChapter_Course_Id(lessonId, chapterId, courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND));
 
         lessonRepository.delete(lesson);
+    }
+
+    @Override
+    @Transactional
+    public LessonResponse publishLesson(Long courseId, Long chapterId, Long lessonId) {
+        Lesson lesson = lessonRepository.findByIdAndChapter_IdAndChapter_Course_Id(lessonId, chapterId, courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND));
+
+        lesson.setPublished(true);
+        lesson = lessonRepository.save(lesson);
+
+        return lessonMapper.toResponse(lesson);
+    }
+
+    @Override
+    @Transactional
+    public LessonResponse unpublishLesson(Long courseId, Long chapterId, Long lessonId) {
+        Lesson lesson = lessonRepository.findByIdAndChapter_IdAndChapter_Course_Id(lessonId, chapterId, courseId)
+                .orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND));
+
+        lesson.setPublished(false);
+        lesson = lessonRepository.save(lesson);
+
+        return lessonMapper.toResponse(lesson);
     }
 }

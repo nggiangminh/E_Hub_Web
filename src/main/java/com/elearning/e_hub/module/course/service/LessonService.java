@@ -7,13 +7,10 @@ import java.util.List;
 
 public interface LessonService {
     LessonResponse createLesson(Long courseId, Long chapterId, LessonRequest request);
-
     LessonResponse getLessonById(Long courseId, Long chapterId, Long lessonId);
-
-    List<LessonResponse> getLessonsByChapter(Long courseId, Long chapterId);
-
+    List<LessonResponse> getLessonsByChapterId(Long courseId, Long chapterId);
     LessonResponse updateLesson(Long courseId, Long chapterId, Long lessonId, LessonRequest request);
-
     void deleteLesson(Long courseId, Long chapterId, Long lessonId);
+    LessonResponse publishLesson(Long courseId, Long chapterId, Long lessonId);
+    LessonResponse unpublishLesson(Long courseId, Long chapterId, Long lessonId);
 }
-

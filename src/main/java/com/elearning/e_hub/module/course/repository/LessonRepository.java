@@ -39,4 +39,17 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
             @Param("lessonId") Long lessonId,
             @Param("chapterId") Long chapterId,
             @Param("courseId") Long courseId);
+
+    /**
+     * Tìm lesson theo id, chapterId và courseId
+     * Đảm bảo lesson thuộc về chapter và chapter thuộc về course
+     */
+    @Query("SELECT l FROM Lesson l " +
+           "WHERE l.id = :lessonId " +
+           "AND l.chapter.id = :chapterId " +
+           "AND l.chapter.course.id = :courseId")
+    Optional<Lesson> findByIdAndChapter_IdAndChapter_Course_Id(
+            @Param("lessonId") Long lessonId,
+            @Param("chapterId") Long chapterId,
+            @Param("courseId") Long courseId);
 }

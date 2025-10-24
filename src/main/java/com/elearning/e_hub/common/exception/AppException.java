@@ -13,5 +13,11 @@ public class AppException extends RuntimeException {
         this.args = args;
     }
 
+    public AppException(ErrorCode errorCode, Object... args) {
+        super(errorCode.getCode());
+        this.errorCode = errorCode;
+        this.args = args;
+    }
 }
+
 
