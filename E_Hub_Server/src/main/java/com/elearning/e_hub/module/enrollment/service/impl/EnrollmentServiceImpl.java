@@ -12,29 +12,27 @@ import com.elearning.e_hub.module.enrollment.service.EnrollmentService;
 import com.elearning.e_hub.module.user.entity.User;
 import com.elearning.e_hub.module.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * Implementation của EnrollmentService.
- * Xử lý nghiệp vụ ghi danh khoá học.
- */
 @Slf4j
 @Service
 public class EnrollmentServiceImpl implements EnrollmentService {
 
-    @Autowired
-    private EnrollmentRepository enrollmentRepository;
+    private final EnrollmentRepository enrollmentRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private CourseRepository courseRepository;
+    private final CourseRepository courseRepository;
+
+    public EnrollmentServiceImpl(EnrollmentRepository enrollmentRepository, UserRepository userRepository, CourseRepository courseRepository) {
+        this.enrollmentRepository = enrollmentRepository;
+        this.userRepository = userRepository;
+        this.courseRepository = courseRepository;
+    }
 
     @Override
     @Transactional

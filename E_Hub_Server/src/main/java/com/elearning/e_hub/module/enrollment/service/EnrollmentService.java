@@ -1,4 +1,3 @@
-// java
 package com.elearning.e_hub.module.enrollment.service;
 
 import com.elearning.e_hub.module.enrollment.dto.EnrollmentRequest;
@@ -16,6 +15,7 @@ import java.util.List;
 public interface EnrollmentService {
     /**
      * Tạo mới ghi danh khoá học.
+     *
      * @param request thông tin ghi danh
      * @return EnrollmentResponse
      */
@@ -23,6 +23,7 @@ public interface EnrollmentService {
 
     /**
      * Lấy thông tin ghi danh theo id.
+     *
      * @param id mã ghi danh
      * @return EnrollmentResponse
      */
@@ -30,7 +31,8 @@ public interface EnrollmentService {
 
     /**
      * Cập nhật thông tin ghi danh.
-     * @param id mã ghi danh
+     *
+     * @param id      mã ghi danh
      * @param request thông tin cập nhật
      * @return EnrollmentResponse
      */
@@ -38,13 +40,15 @@ public interface EnrollmentService {
 
     /**
      * Huỷ ghi danh.
+     *
      * @param id mã ghi danh
      */
     void cancel(Long id);
 
     /**
      * Đổi trạng thái ghi danh.
-     * @param id mã ghi danh
+     *
+     * @param id     mã ghi danh
      * @param status trạng thái mới
      * @return EnrollmentResponse
      */
@@ -52,7 +56,8 @@ public interface EnrollmentService {
 
     /**
      * Kiểm tra tồn tại ghi danh theo user và course.
-     * @param userId mã user
+     *
+     * @param userId   mã user
      * @param courseId mã khoá học
      * @return true nếu tồn tại
      */
@@ -60,6 +65,7 @@ public interface EnrollmentService {
 
     /**
      * Lấy danh sách ghi danh theo user.
+     *
      * @param userId mã user
      * @return danh sách EnrollmentResponse
      */
@@ -67,11 +73,10 @@ public interface EnrollmentService {
 
     /**
      * Lấy danh sách ghi danh theo khoá học.
+     *
      * @param courseId mã khoá học
      * @return danh sách EnrollmentResponse
      */
     List<EnrollmentResponse> findByCourseId(Long courseId);
 
-//    /** Tìm kiếm / phân trang theo tiêu chí (filter, sort, paging) */
-//    Page<EnrollmentResponse> search(EnrollmentSearchCriteria criteria, Pageable pageable);
 }
