@@ -36,8 +36,8 @@ public class EnrollmentMapper {
         }
         return new EnrollmentResponse(
                 enrollment.getId(),
-                enrollment.getUserId(),
-                enrollment.getCourseId(),
+                enrollment.getUserId().getId(),
+                enrollment.getCourseId().getId(),
                 enrollment.getEnrolledAt(),
                 enrollment.getStatus()
         );

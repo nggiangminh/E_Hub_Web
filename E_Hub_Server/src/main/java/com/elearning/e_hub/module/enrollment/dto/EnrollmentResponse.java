@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 
 public record EnrollmentResponse(
         Long id,
-        User userId,
-        Course courseId,
+        Long userId,
+        Long courseId,
         LocalDateTime enrolledAt,
         EnrollmentStatus status
 ) {
