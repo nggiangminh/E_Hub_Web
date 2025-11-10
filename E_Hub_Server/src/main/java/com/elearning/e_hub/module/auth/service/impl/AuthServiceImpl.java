@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Slf4j
@@ -51,6 +52,10 @@ public class AuthServiceImpl implements AuthService {
         // Lấy thông tin user
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND, "Người dùng không tồn tại"));
+
+        // Cập nhật thời gian đăng nhập cuối
+        user.setLastLoginAt(LocalDateTime.now());
+        userRepository.save(user);
 
         // Tạo session mới
         Session session = new Session();
