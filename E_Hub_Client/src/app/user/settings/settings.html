@@ -1,0 +1,328 @@
+<!-- User Settings Template -->
+<div class="settings-container">
+  <!-- Decorative Elements -->
+  <div class="geometric-decoration decoration-1"></div>
+  <div class="geometric-decoration decoration-2"></div>
+  <div class="geometric-decoration decoration-3"></div>
+
+  <!-- Settings Header -->
+  <div class="settings-header">
+    <button type="button" class="back-button" routerLink="/user/profile">
+      <span class="back-icon">←</span>
+      <span class="back-text">Quay lại hồ sơ</span>
+    </button>
+    <h1 class="page-title">Cài đặt tài khoản</h1>
+    <p class="page-subtitle">Quản lý bảo mật và tùy chọn tài khoản của bạn</p>
+  </div>
+
+  <!-- Settings Content -->
+  <div class="settings-content">
+    
+    <!-- Password Change Section -->
+    <div class="settings-section">
+      <div class="section-header">
+        <h2 class="section-title">🔒 Đổi mật khẩu</h2>
+        <p class="section-description">Cập nhật mật khẩu để bảo mật tài khoản</p>
+      </div>
+
+      <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()" class="password-form">
+        
+        <!-- Current Password -->
+        <div class="form-group">
+          <label class="form-label">Mật khẩu hiện tại</label>
+          <div class="password-input-wrapper">
+            <input [type]="showCurrentPassword ? 'text' : 'password'"
+                   formControlName="currentPassword"
+                   class="form-input"
+                   placeholder="Nhập mật khẩu hiện tại"
+                   [class.error]="isPasswordFieldInvalid('currentPassword')">
+            <button type="button" 
+                    class="password-toggle"
+                    (click)="showCurrentPassword = !showCurrentPassword">
+              {{ showCurrentPassword ? '🙈' : '👁️' }}
+            </button>
+          </div>
+          <div *ngIf="isPasswordFieldInvalid('currentPassword')" class="error-message">
+            <span *ngIf="passwordForm.get('currentPassword')?.errors?.['required']">Vui lòng nhập mật khẩu hiện tại</span>
+          </div>
+        </div>
+
+        <!-- New Password -->
+        <div class="form-group">
+          <label class="form-label">Mật khẩu mới</label>
+          <div class="password-input-wrapper">
+            <input [type]="showNewPassword ? 'text' : 'password'"
+                   formControlName="newPassword"
+                   class="form-input"
+                   placeholder="Nhập mật khẩu mới"
+                   [class.error]="isPasswordFieldInvalid('newPassword')">
+            <button type="button" 
+                    class="password-toggle"
+                    (click)="showNewPassword = !showNewPassword">
+              {{ showNewPassword ? '🙈' : '👁️' }}
+            </button>
+          </div>
+          
+          <!-- Password Strength Indicator -->
+          <div class="password-strength">
+            <div class="strength-bar">
+              <div class="strength-fill" [style.width.%]="passwordStrength" [class]="passwordStrengthClass"></div>
+            </div>
+            <span class="strength-text">{{ passwordStrengthText }}</span>
+          </div>
+
+          <div *ngIf="isPasswordFieldInvalid('newPassword')" class="error-message">
+            <span *ngIf="passwordForm.get('newPassword')?.errors?.['required']">Vui lòng nhập mật khẩu mới</span>
+            <span *ngIf="passwordForm.get('newPassword')?.errors?.['minlength']">Mật khẩu phải có ít nhất 8 ký tự</span>
+            <span *ngIf="passwordForm.get('newPassword')?.errors?.['pattern']">Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt</span>
+          </div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+          <label class="form-label">Xác nhận mật khẩu mới</label>
+          <div class="password-input-wrapper">
+            <input [type]="showConfirmPassword ? 'text' : 'password'"
+                   formControlName="confirmPassword"
+                   class="form-input"
+                   placeholder="Nhập lại mật khẩu mới"
+                   [class.error]="isPasswordFieldInvalid('confirmPassword')">
+            <button type="button" 
+                    class="password-toggle"
+                    (click)="showConfirmPassword = !showConfirmPassword">
+              {{ showConfirmPassword ? '🙈' : '👁️' }}
+            </button>
+          </div>
+          <div *ngIf="isPasswordFieldInvalid('confirmPassword')" class="error-message">
+            <span *ngIf="passwordForm.get('confirmPassword')?.errors?.['required']">Vui lòng xác nhận mật khẩu</span>
+            <span *ngIf="passwordForm.hasError('mismatch')">Mật khẩu xác nhận không khớp</span>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" 
+                class="btn btn-primary"
+                [disabled]="passwordForm.invalid || isChangingPassword">
+          <span *ngIf="isChangingPassword" class="loading-spinner"></span>
+          {{ isChangingPassword ? 'Đang thay đổi...' : 'Đổi mật khẩu' }}
+        </button>
+      </form>
+    </div>
+
+    <!-- Security Settings -->
+    <div class="settings-section">
+      <div class="section-header">
+        <h2 class="section-title">🛡️ Bảo mật tài khoản</h2>
+        <p class="section-description">Các tùy chọn bảo mật nâng cao</p>
+      </div>
+
+      <div class="security-options">
+        
+        <!-- Two-Factor Authentication -->
+        <div class="security-option">
+          <div class="option-info">
+            <h3 class="option-title">Xác thực hai yếu tố (2FA)</h3>
+            <p class="option-description">Tăng cường bảo mật với mã xác thực từ điện thoại</p>
+          </div>
+          <div class="option-control">
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="securitySettings.twoFactorEnabled" (change)="onToggle2FA()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Email Notifications -->
+        <div class="security-option">
+          <div class="option-info">
+            <h3 class="option-title">Thông báo đăng nhập</h3>
+            <p class="option-description">Nhận email khi có đăng nhập từ thiết bị mới</p>
+          </div>
+          <div class="option-control">
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="securitySettings.loginNotifications">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Session Management -->
+        <div class="security-option">
+          <div class="option-info">
+            <h3 class="option-title">Tự động đăng xuất</h3>
+            <p class="option-description">Đăng xuất tự động khi không hoạt động</p>
+          </div>
+          <div class="option-control">
+            <select [(ngModel)]="securitySettings.autoLogoutMinutes" class="select-input">
+              <option value="30">30 phút</option>
+              <option value="60">1 giờ</option>
+              <option value="120">2 giờ</option>
+              <option value="0">Không bao giờ</option>
+            </select>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Active Sessions -->
+      <div class="active-sessions">
+        <h3 class="subsection-title">Phiên đăng nhập hiện tại</h3>
+        <div class="session-list">
+          <div *ngFor="let session of activeSessions" class="session-item">
+            <div class="session-info">
+              <div class="session-device">{{ session.device }}</div>
+              <div class="session-details">
+                <span class="session-location">{{ session.location }}</span>
+                <span class="session-time">{{ formatDate(session.lastActive) }}</span>
+              </div>
+            </div>
+            <div class="session-actions">
+              <span *ngIf="session.isCurrent" class="current-badge">Hiện tại</span>
+              <button *ngIf="!session.isCurrent" 
+                      type="button" 
+                      class="btn btn-small btn-danger"
+                      (click)="terminateSession(session.id)">
+                Đăng xuất
+              </button>
+            </div>
+          </div>
+        </div>
+        <button type="button" 
+                class="btn btn-secondary btn-block"
+                (click)="terminateAllSessions()">
+          Đăng xuất tất cả thiết bị khác
+        </button>
+      </div>
+    </div>
+
+    <!-- Privacy Settings -->
+    <div class="settings-section">
+      <div class="section-header">
+        <h2 class="section-title">🔐 Quyền riêng tư</h2>
+        <p class="section-description">Kiểm soát thông tin cá nhân của bạn</p>
+      </div>
+
+      <div class="privacy-options">
+        
+        <!-- Profile Visibility -->
+        <div class="privacy-option">
+          <div class="option-info">
+            <h3 class="option-title">Hiển thị hồ sơ công khai</h3>
+            <p class="option-description">Cho phép người khác xem thông tin cơ bản của bạn</p>
+          </div>
+          <div class="option-control">
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="privacySettings.publicProfile">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Learning Progress -->
+        <div class="privacy-option">
+          <div class="option-info">
+            <h3 class="option-title">Hiển thị tiến độ học tập</h3>
+            <p class="option-description">Chia sẻ tiến độ học tập với bạn bè</p>
+          </div>
+          <div class="option-control">
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="privacySettings.showProgress">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="settings-section danger-zone">
+      <div class="section-header">
+        <h2 class="section-title">⚠️ Vùng nguy hiểm</h2>
+        <p class="section-description">Các hành động không thể hoàn tác</p>
+      </div>
+
+      <div class="danger-actions">
+        <button type="button" 
+                class="btn btn-danger btn-block"
+                (click)="showDeleteConfirm = true">
+          🗑️ Xóa tài khoản vĩnh viễn
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Delete Account Confirmation Modal -->
+<div *ngIf="showDeleteConfirm" class="modal-overlay" (click)="showDeleteConfirm = false">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h2 class="modal-title">⚠️ Xác nhận xóa tài khoản</h2>
+    <p class="modal-text">
+      Bạn có chắc chắn muốn xóa tài khoản vĩnh viễn? Tất cả dữ liệu của bạn sẽ bị mất và không thể khôi phục.
+    </p>
+    <div class="confirm-input">
+      <label>Nhập "XÓA TÀI KHOẢN" để xác nhận:</label>
+      <input type="text" 
+             [(ngModel)]="deleteConfirmText" 
+             class="form-input"
+             placeholder="XÓA TÀI KHOẢN">
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" (click)="showDeleteConfirm = false">
+        Hủy bỏ
+      </button>
+      <button type="button" 
+              class="btn btn-danger" 
+              [disabled]="deleteConfirmText !== 'XÓA TÀI KHOẢN'"
+              (click)="deleteAccount()">
+        Xóa tài khoản
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 2FA Setup Modal -->
+<div *ngIf="show2FAModal" class="modal-overlay" (click)="show2FAModal = false">
+  <div class="modal-content large" (click)="$event.stopPropagation()">
+    <h2 class="modal-title">🛡️ Thiết lập xác thực hai yếu tố</h2>
+    
+    <div class="twofa-setup">
+      <div class="setup-step">
+        <h3>Bước 1: Tải ứng dụng xác thực</h3>
+        <p>Tải Google Authenticator hoặc Authy trên điện thoại của bạn.</p>
+      </div>
+
+      <div class="setup-step">
+        <h3>Bước 2: Quét mã QR</h3>
+        <div class="qr-code">
+          <div class="qr-placeholder">
+            📱 QR Code sẽ hiển thị ở đây
+          </div>
+        </div>
+        <p class="backup-code">Mã dự phòng: {{ backupCode }}</p>
+      </div>
+
+      <div class="setup-step">
+        <h3>Bước 3: Nhập mã xác thực</h3>
+        <input type="text" 
+               [(ngModel)]="twoFACode" 
+               class="form-input"
+               placeholder="Nhập 6 chữ số"
+               maxlength="6">
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" (click)="show2FAModal = false">
+        Hủy bỏ
+      </button>
+      <button type="button" 
+              class="btn btn-primary" 
+              [disabled]="twoFACode.length !== 6"
+              (click)="confirm2FA()">
+        Kích hoạt 2FA
+      </button>
+    </div>
+  </div>
+</div>

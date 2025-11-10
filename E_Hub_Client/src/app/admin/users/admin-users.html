@@ -1,0 +1,387 @@
+<!-- Admin User Management Template -->
+<div class="admin-container">
+  <!-- Decorative Elements -->
+  <div class="geometric-decoration decoration-1"></div>
+  <div class="geometric-decoration decoration-2"></div>
+  <div class="geometric-decoration decoration-3"></div>
+
+  <!-- Header Section -->
+  <div class="admin-header">
+    <div class="header-content">
+      <h1 class="page-title">👥 Quản lý người dùng</h1>
+      <p class="page-subtitle">Quản trị viên có thể xem, chỉnh sửa và quản lý tất cả người dùng trong hệ thống</p>
+    </div>
+    
+    <div class="header-actions">
+      <button type="button" 
+              class="btn btn-primary"
+              (click)="showCreateModal = true">
+        <span class="btn-icon">➕</span>
+        Tạo người dùng mới
+      </button>
+      
+      <button type="button" 
+              class="btn btn-secondary"
+              (click)="exportUsers()">
+        <span class="btn-icon">📊</span>
+        Xuất danh sách
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="filters-section">
+    <div class="search-group">
+      <input type="text" 
+             [(ngModel)]="searchQuery"
+             (ngModelChange)="onSearch()"
+             class="search-input"
+             placeholder="🔍 Tìm kiếm theo tên hoặc email...">
+    </div>
+    
+    <div class="filter-group">
+      <select [(ngModel)]="selectedRole" (ngModelChange)="onFilterChange()" class="filter-select">
+        <option value="">Tất cả vai trò</option>
+        <option value="USER">Học viên</option>
+        <option value="ADMIN">Quản trị viên</option>
+        <option value="SUPER_ADMIN">Quản trị cấp cao</option>
+      </select>
+      
+      <select [(ngModel)]="selectedStatus" (ngModelChange)="onFilterChange()" class="filter-select">
+        <option value="">Tất cả trạng thái</option>
+        <option value="ACTIVE">Hoạt động</option>
+        <option value="SUSPENDED">Tạm khóa</option>
+        <option value="DELETED">Đã xóa</option>
+      </select>
+    </div>
+    
+    <div class="stats-display">
+      <div class="stat-item">
+        <span class="stat-number">{{ totalUsers }}</span>
+        <span class="stat-label">Tổng số</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ activeUsers }}</span>
+        <span class="stat-label">Hoạt động</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ suspendedUsers }}</span>
+        <span class="stat-label">Tạm khóa</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Users Table -->
+  <div class="table-container">
+    <div class="table-header">
+      <h2 class="table-title">Danh sách người dùng</h2>
+      <div class="table-controls">
+        <span class="showing-text">
+          Hiển thị {{ (currentPage - 1) * pageSize + 1 }} - 
+          {{ getEndIndex() }} 
+          trong tổng số {{ totalUsers }} người dùng
+        </span>
+      </div>
+    </div>
+
+    <div class="users-table" *ngIf="!isLoading">
+      <!-- Table Header -->
+      <div class="table-row header-row">
+        <div class="table-cell">Thông tin</div>
+        <div class="table-cell">Vai trò</div>
+        <div class="table-cell">Trạng thái</div>
+        <div class="table-cell">Đăng nhập cuối</div>
+        <div class="table-cell">Thao tác</div>
+      </div>
+
+      <!-- Table Body -->
+      <div *ngFor="let user of users; trackBy: trackByUserId" class="table-row data-row">
+        
+        <!-- User Info -->
+        <div class="table-cell user-info">
+          <div class="user-avatar">
+            <img [src]="user.avatarUrl || defaultAvatar" [alt]="user.fullName" class="avatar-image">
+          </div>
+          <div class="user-details">
+            <div class="user-name">{{ user.fullName }}</div>
+            <div class="user-email">{{ user.email }}</div>
+            <div class="user-id">ID: {{ user.id }}</div>
+          </div>
+        </div>
+
+        <!-- Role -->
+        <div class="table-cell">
+          <span class="role-badge" [class]="'role-' + user.role.toLowerCase()">
+            {{ getRoleDisplay(user.role) }}
+          </span>
+        </div>
+
+        <!-- Status -->
+        <div class="table-cell">
+          <span class="status-badge" [class]="'status-' + user.status.toLowerCase()">
+            {{ getStatusDisplay(user.status) }}
+          </span>
+        </div>
+
+        <!-- Last Login -->
+        <div class="table-cell last-login">
+          <div class="login-time">{{ formatDate(user.lastLoginAt) }}</div>
+          <div class="login-relative">{{ getRelativeTime(user.lastLoginAt) }}</div>
+        </div>
+
+        <!-- Actions -->
+        <div class="table-cell actions">
+          <button type="button" 
+                  class="action-btn view-btn"
+                  (click)="viewUser(user)"
+                  title="Xem chi tiết">
+            👁️
+          </button>
+          
+          <button type="button" 
+                  class="action-btn edit-btn"
+                  (click)="editUser(user)"
+                  title="Chỉnh sửa">
+            ✏️
+          </button>
+          
+          <button type="button" 
+                  class="action-btn status-btn"
+                  [class]="user.status === 'ACTIVE' ? 'suspend-btn' : 'activate-btn'"
+                  (click)="toggleUserStatus(user)"
+                  [title]="user.status === 'ACTIVE' ? 'Tạm khóa' : 'Kích hoạt'">
+            {{ user.status === 'ACTIVE' ? '⏸️' : '▶️' }}
+          </button>
+          
+          <button type="button" 
+                  class="action-btn delete-btn"
+                  (click)="confirmDeleteUser(user)"
+                  title="Xóa người dùng">
+            🗑️
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p class="loading-text">Đang tải danh sách người dùng...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && users.length === 0" class="empty-state">
+      <div class="empty-icon">👥</div>
+      <h3 class="empty-title">Không tìm thấy người dùng</h3>
+      <p class="empty-description">
+        {{ searchQuery ? 'Không có kết quả nào phù hợp với tìm kiếm của bạn' : 'Chưa có người dùng nào trong hệ thống' }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-container" *ngIf="totalPages > 1">
+    <button type="button" 
+            class="pagination-btn"
+            [disabled]="currentPage === 1"
+            (click)="goToPage(currentPage - 1)">
+      ← Trước
+    </button>
+    
+    <div class="page-numbers">
+      <button *ngFor="let page of getPageNumbers()" 
+              type="button"
+              class="page-btn"
+              [class.active]="page === currentPage"
+              [disabled]="page === '...'"
+              (click)="page !== '...' && goToPage(+page)">
+        {{ page }}
+      </button>
+    </div>
+    
+    <button type="button" 
+            class="pagination-btn"
+            [disabled]="currentPage === totalPages"
+            (click)="goToPage(currentPage + 1)">
+      Sau →
+    </button>
+  </div>
+</div>
+
+<!-- User Details Modal -->
+<div *ngIf="showDetailsModal" class="modal-overlay" (click)="showDetailsModal = false">
+  <div class="modal-content large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Chi tiết người dùng</h2>
+      <button type="button" class="close-btn" (click)="showDetailsModal = false">✕</button>
+    </div>
+    
+    <div *ngIf="selectedUser" class="user-details-content">
+      <div class="detail-section">
+        <div class="detail-row">
+          <span class="detail-label">Ảnh đại diện:</span>
+          <img [src]="selectedUser.avatarUrl || defaultAvatar" 
+               [alt]="selectedUser.fullName" 
+               class="detail-avatar">
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">Họ và tên:</span>
+          <span class="detail-value">{{ selectedUser.fullName }}</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">Email:</span>
+          <span class="detail-value">{{ selectedUser.email }}</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">Vai trò:</span>
+          <span class="role-badge" [class]="'role-' + selectedUser.role.toLowerCase()">
+            {{ getRoleDisplay(selectedUser.role) }}
+          </span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">Trạng thái:</span>
+          <span class="status-badge" [class]="'status-' + selectedUser.status.toLowerCase()">
+            {{ getStatusDisplay(selectedUser.status) }}
+          </span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">Giới thiệu:</span>
+          <span class="detail-value">{{ selectedUser.bio || 'Chưa có giới thiệu' }}</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">Ngày tạo:</span>
+          <span class="detail-value">{{ formatDate(selectedUser.createdAt) }}</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">Cập nhật cuối:</span>
+          <span class="detail-value">{{ formatDate(selectedUser.updatedAt) }}</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label">Đăng nhập cuối:</span>
+          <span class="detail-value">{{ formatDate(selectedUser.lastLoginAt) }}</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" (click)="showDetailsModal = false">
+        Đóng
+      </button>
+      <button type="button" class="btn btn-primary" (click)="editUser(selectedUser!)">
+        Chỉnh sửa
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Create/Edit User Modal -->
+<div *ngIf="showCreateModal || showEditModal" class="modal-overlay" (click)="closeEditModal()">
+  <div class="modal-content large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">
+        {{ showCreateModal ? 'Tạo người dùng mới' : 'Chỉnh sửa người dùng' }}
+      </h2>
+      <button type="button" class="close-btn" (click)="closeEditModal()">✕</button>
+    </div>
+    
+    <form [formGroup]="userForm" (ngSubmit)="onSubmitUser()" class="user-form">
+      
+      <!-- Full Name -->
+      <div class="form-group">
+        <label class="form-label">Họ và tên *</label>
+        <input type="text" 
+               formControlName="fullName"
+               class="form-input"
+               placeholder="Nhập họ và tên"
+               [class.error]="isFieldInvalid('fullName')">
+        <div *ngIf="isFieldInvalid('fullName')" class="error-message">
+          <span *ngIf="userForm.get('fullName')?.errors?.['required']">Vui lòng nhập họ và tên</span>
+          <span *ngIf="userForm.get('fullName')?.errors?.['minlength']">Họ và tên phải có ít nhất 2 ký tự</span>
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label class="form-label">Email *</label>
+        <input type="email" 
+               formControlName="email"
+               class="form-input"
+               placeholder="Nhập địa chỉ email"
+               [class.error]="isFieldInvalid('email')">
+        <div *ngIf="isFieldInvalid('email')" class="error-message">
+          <span *ngIf="userForm.get('email')?.errors?.['required']">Vui lòng nhập email</span>
+          <span *ngIf="userForm.get('email')?.errors?.['email']">Email không hợp lệ</span>
+        </div>
+      </div>
+
+      <!-- Role -->
+      <div class="form-group">
+        <label class="form-label">Vai trò *</label>
+        <select formControlName="role" class="form-input">
+          <option value="USER">Học viên</option>
+          <option value="ADMIN">Quản trị viên</option>
+          <option value="SUPER_ADMIN">Quản trị cấp cao</option>
+        </select>
+      </div>
+
+      <!-- Status -->
+      <div class="form-group">
+        <label class="form-label">Trạng thái *</label>
+        <select formControlName="status" class="form-input">
+          <option value="ACTIVE">Hoạt động</option>
+          <option value="SUSPENDED">Tạm khóa</option>
+        </select>
+      </div>
+
+      <!-- Bio -->
+      <div class="form-group">
+        <label class="form-label">Giới thiệu</label>
+        <textarea formControlName="bio"
+                  class="form-textarea"
+                  placeholder="Viết vài dòng giới thiệu..."
+                  rows="3"></textarea>
+      </div>
+    </form>
+    
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" (click)="closeEditModal()">
+        Hủy bỏ
+      </button>
+      <button type="button" 
+              class="btn btn-primary" 
+              [disabled]="userForm.invalid || isSaving"
+              (click)="onSubmitUser()">
+        <span *ngIf="isSaving" class="loading-spinner"></span>
+        {{ isSaving ? 'Đang lưu...' : (showCreateModal ? 'Tạo người dùng' : 'Lưu thay đổi') }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div *ngIf="showDeleteModal" class="modal-overlay" (click)="showDeleteModal = false">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h2 class="modal-title">⚠️ Xác nhận xóa người dùng</h2>
+    <p class="modal-text">
+      Bạn có chắc chắn muốn xóa người dùng <strong>{{ userToDelete?.fullName }}</strong>?
+      Hành động này không thể hoàn tác.
+    </p>
+    
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" (click)="showDeleteModal = false">
+        Hủy bỏ
+      </button>
+      <button type="button" class="btn btn-danger" (click)="deleteUser()">
+        Xóa người dùng
+      </button>
+    </div>
+  </div>
+</div>

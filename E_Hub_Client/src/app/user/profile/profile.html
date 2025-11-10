@@ -1,0 +1,149 @@
+<!-- User Profile Template -->
+<div class="profile-container">
+  <!-- Decorative Elements -->
+  <div class="geometric-decoration decoration-1"></div>
+  <div class="geometric-decoration decoration-2"></div>
+  <div class="geometric-decoration decoration-3"></div>
+
+  <!-- Profile Card -->
+  <div class="profile-card">
+    <!-- Header Section -->
+    <div class="profile-header">
+      <div class="avatar-section">
+        <div class="avatar-wrapper">
+          <img [src]="user.avatarUrl || defaultAvatar" [alt]="user.fullName" class="avatar-image">
+          <button type="button" class="avatar-edit-btn" (click)="triggerFileInput()">
+            <span class="edit-icon">📸</span>
+          </button>
+        </div>
+        <input #fileInput type="file" accept="image/*" (change)="onAvatarSelect($event)" class="file-input">
+      </div>
+      
+      <div class="user-info">
+        <h1 class="user-name">{{ user.fullName }}</h1>
+        <span class="user-role" [class]="'role-' + user.role.toLowerCase()">{{ getRoleDisplay(user.role) }}</span>
+        <span class="user-status" [class]="'status-' + user.status.toLowerCase()">{{ getStatusDisplay(user.status) }}</span>
+      </div>
+    </div>
+
+    <!-- Profile Form -->
+    <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
+      
+      <!-- Full Name -->
+      <div class="form-group">
+        <label class="form-label">Họ và tên</label>
+        <input type="text" 
+               formControlName="fullName"
+               class="form-input"
+               placeholder="Nhập họ và tên của bạn"
+               [class.error]="isFieldInvalid('fullName')">
+        <div *ngIf="isFieldInvalid('fullName')" class="error-message">
+          <span *ngIf="profileForm.get('fullName')?.errors?.['required']">Vui lòng nhập họ và tên</span>
+          <span *ngIf="profileForm.get('fullName')?.errors?.['minlength']">Họ và tên phải có ít nhất 2 ký tự</span>
+          <span *ngIf="profileForm.get('fullName')?.errors?.['maxlength']">Họ và tên không được vượt quá 100 ký tự</span>
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" 
+               formControlName="email"
+               class="form-input"
+               placeholder="Nhập địa chỉ email"
+               [class.error]="isFieldInvalid('email')">
+        <div *ngIf="isFieldInvalid('email')" class="error-message">
+          <span *ngIf="profileForm.get('email')?.errors?.['required']">Vui lòng nhập email</span>
+          <span *ngIf="profileForm.get('email')?.errors?.['email']">Email không hợp lệ</span>
+        </div>
+      </div>
+
+      <!-- Bio -->
+      <div class="form-group">
+        <label class="form-label">Giới thiệu bản thân</label>
+        <textarea formControlName="bio"
+                  class="form-textarea"
+                  placeholder="Viết vài dòng giới thiệu về bản thân..."
+                  rows="4"
+                  [class.error]="isFieldInvalid('bio')"></textarea>
+        <div class="char-counter">{{ bioLength }}/500</div>
+        <div *ngIf="isFieldInvalid('bio')" class="error-message">
+          <span *ngIf="profileForm.get('bio')?.errors?.['maxlength']">Giới thiệu không được vượt quá 500 ký tự</span>
+        </div>
+      </div>
+
+      <!-- Account Information (Read-only) -->
+      <div class="account-info">
+        <h3 class="section-title">Thông tin tài khoản</h3>
+        
+        <div class="info-row">
+          <span class="info-label">Ngày tạo tài khoản:</span>
+          <span class="info-value">{{ formatDate(user.createdAt) }}</span>
+        </div>
+        
+        <div class="info-row">
+          <span class="info-label">Lần đăng nhập cuối:</span>
+          <span class="info-value">{{ formatDate(user.lastLoginAt) }}</span>
+        </div>
+        
+        <div class="info-row">
+          <span class="info-label">Cập nhật lần cuối:</span>
+          <span class="info-value">{{ formatDate(user.updatedAt) }}</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="button-group">
+        <button type="button" 
+                class="btn btn-secondary" 
+                (click)="resetForm()">
+          Hủy bỏ
+        </button>
+        
+        <button type="submit" 
+                class="btn btn-primary"
+                [disabled]="profileForm.invalid || isLoading">
+          <span *ngIf="isLoading" class="loading-spinner"></span>
+          {{ isLoading ? 'Đang lưu...' : 'Lưu thay đổi' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="quick-actions">
+    <button type="button" class="action-btn" routerLink="/user/settings">
+      <span class="action-icon">⚙️</span>
+      <span class="action-text">Cài đặt tài khoản</span>
+    </button>
+    
+    <button type="button" class="action-btn" (click)="downloadProfile()">
+      <span class="action-icon">📄</span>
+      <span class="action-text">Xuất thông tin</span>
+    </button>
+    
+    <button type="button" class="action-btn danger" (click)="showDeleteConfirm = true">
+      <span class="action-icon">🗑️</span>
+      <span class="action-text">Xóa tài khoản</span>
+    </button>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div *ngIf="showDeleteConfirm" class="modal-overlay" (click)="showDeleteConfirm = false">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h2 class="modal-title">Xác nhận xóa tài khoản</h2>
+    <p class="modal-text">
+      Bạn có chắc chắn muốn xóa tài khoản? Hành động này không thể hoàn tác.
+    </p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" (click)="showDeleteConfirm = false">
+        Hủy bỏ
+      </button>
+      <button type="button" class="btn btn-danger" (click)="deleteAccount()">
+        Xóa tài khoản
+      </button>
+    </div>
+  </div>
+</div>

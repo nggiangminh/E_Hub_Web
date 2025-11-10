@@ -42,7 +42,7 @@ export const routes: Routes = [
     title: 'Trang chủ - E-Learning Hub'
   },
 
-  // User routes (placeholder for future implementation)
+  // User routes
   {
     path: 'user',
     children: [
@@ -55,6 +55,25 @@ export const routes: Routes = [
         path: 'settings',
         loadComponent: () => import('./user/settings/settings.component').then(c => c.SettingsComponent),
         title: 'Cài đặt - E-Learning Hub'
+      }
+    ]
+  },
+
+  // Admin routes
+  {
+    path: 'admin',
+    children: [
+      {
+        path: 'users',
+        loadComponent: () => import('./admin/users/admin-users.component').then(c => c.AdminUsersComponent),
+        title: 'Quản lý người dùng - E-Learning Hub'
+        // TODO: Add role-based guard for admin access
+        // canActivate: [AdminGuard]
+      },
+      {
+        path: '',
+        redirectTo: 'users',
+        pathMatch: 'full'
       }
     ]
   },
