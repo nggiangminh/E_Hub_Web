@@ -59,6 +59,51 @@ export const routes: Routes = [
     ]
   },
 
+  // Course routes
+  {
+    path: 'courses',
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./courses/course-list/course-list.component').then(c => c.CourseListComponent),
+        title: 'Danh sách khóa học - E-Learning Hub'
+      },
+      {
+        path: 'new',
+        loadComponent: () => import('./courses/course-form/course-form.component').then(c => c.CourseFormComponent),
+        title: 'Tạo khóa học mới - E-Learning Hub'
+        // TODO: Add authentication guard
+        // canActivate: [AuthGuard]
+      },
+      {
+        path: ':id',
+        loadComponent: () => import('./courses/course-details/course-details.component').then(c => c.CourseDetailsComponent),
+        title: 'Chi tiết khóa học - E-Learning Hub'
+      },
+      {
+        path: ':id/edit',
+        loadComponent: () => import('./courses/course-form/course-form.component').then(c => c.CourseFormComponent),
+        title: 'Chỉnh sửa khóa học - E-Learning Hub'
+        // TODO: Add authentication guard and owner check
+        // canActivate: [AuthGuard, CourseOwnerGuard]
+      },
+      {
+        path: ':id/chapters',
+        loadComponent: () => import('./courses/chapter-management/chapter-management.component').then(c => c.ChapterManagementComponent),
+        title: 'Quản lý chương học - E-Learning Hub'
+        // TODO: Add authentication guard and owner check
+        // canActivate: [AuthGuard, CourseOwnerGuard]
+      },
+      {
+        path: ':id/lessons/:lessonId',
+        loadComponent: () => import('./courses/lesson-viewer/lesson-viewer.component').then(c => c.LessonViewerComponent),
+        title: 'Học bài - E-Learning Hub'
+        // TODO: Add enrollment check
+        // canActivate: [AuthGuard, EnrollmentGuard]
+      }
+    ]
+  },
+
   // Admin routes
   {
     path: 'admin',

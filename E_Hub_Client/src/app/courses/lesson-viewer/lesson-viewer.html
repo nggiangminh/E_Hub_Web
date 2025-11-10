@@ -1,0 +1,402 @@
+<!-- Lesson Viewer Template -->
+<div class="lesson-viewer-container">
+  <!-- Decorative Elements -->
+  <div class="geometric-decoration decoration-1"></div>
+  <div class="geometric-decoration decoration-2"></div>
+  <div class="geometric-decoration decoration-3"></div>
+
+  <!-- Navigation Header -->
+  <div class="viewer-header">
+    <div class="navigation-controls">
+      <button type="button" class="nav-button back-button" (click)="goBackToCourse()">
+        <span class="nav-icon">←</span>
+        <span class="nav-text">Quay lại khóa học</span>
+      </button>
+      
+      <div class="lesson-navigation" *ngIf="!isLoading">
+        <button type="button" 
+                class="nav-button prev-button"
+                (click)="goToPreviousLesson()"
+                [disabled]="!hasPreviousLesson">
+          <span class="nav-icon">⬅️</span>
+          <span class="nav-text">Bài trước</span>
+        </button>
+        
+        <button type="button" 
+                class="nav-button next-button"
+                (click)="goToNextLesson()"
+                [disabled]="!hasNextLesson">
+          <span class="nav-text">Bài tiếp theo</span>
+          <span class="nav-icon">➡️</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-section" *ngIf="!isLoading">
+      <div class="progress-info">
+        <span class="progress-text">
+          Bài {{ currentLessonIndex + 1 }} / {{ totalLessons }}
+        </span>
+        <span class="progress-percentage">
+          {{ progressPercentage }}% hoàn thành
+        </span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="progressPercentage"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lesson Content -->
+  <div class="lesson-content" *ngIf="currentLesson && !isLoading">
+    
+    <!-- Lesson Info -->
+    <div class="lesson-info-section">
+      <div class="lesson-header">
+        <div class="lesson-type-badge" [class]="'type-' + currentLesson.lessonType.toLowerCase()">
+          <span class="type-icon">{{ getLessonTypeIcon(currentLesson.lessonType) }}</span>
+          <span class="type-text">{{ getLessonTypeDisplay(currentLesson.lessonType) }}</span>
+        </div>
+        
+        <div class="lesson-duration" *ngIf="currentLesson.durationSeconds">
+          <span class="duration-icon">⏱️</span>
+          <span class="duration-text">{{ formatDuration(currentLesson.durationSeconds) }}</span>
+        </div>
+      </div>
+
+      <h1 class="lesson-title">{{ currentLesson.title }}</h1>
+      
+      <p class="lesson-description" *ngIf="currentLesson.description">
+        {{ currentLesson.description }}
+      </p>
+
+      <div class="chapter-context">
+        <span class="chapter-label">Chương:</span>
+        <span class="chapter-name">{{ currentChapter?.title }}</span>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="content-area">
+      
+      <!-- Video Content -->
+      <div class="video-section" 
+           *ngIf="currentLesson.lessonType === 'VIDEO'">
+        
+        <div class="video-container">
+          <div class="video-player" *ngIf="currentLesson.contentUrl; else videoPlaceholder">
+            <video #videoPlayer 
+                   class="lesson-video"
+                   [src]="currentLesson.contentUrl"
+                   controls
+                   preload="metadata"
+                   (loadedmetadata)="onVideoLoaded()"
+                   (timeupdate)="onVideoProgress($event)"
+                   (ended)="onVideoEnded()">
+              <source [src]="currentLesson.contentUrl" type="video/mp4">
+              Trình duyệt của bạn không hỗ trợ video HTML5.
+            </video>
+            
+            <!-- Video Controls Overlay -->
+            <div class="video-controls-overlay" [class.visible]="showVideoControls">
+              <div class="playback-controls">
+                <button type="button" 
+                        class="control-btn play-pause-btn"
+                        (click)="togglePlayPause()">
+                  {{ isVideoPlaying ? '⏸️' : '▶️' }}
+                </button>
+                
+                <div class="time-display">
+                  {{ formatTime(currentVideoTime) }} / {{ formatTime(videoDuration) }}
+                </div>
+                
+                <div class="speed-control">
+                  <select class="speed-select" 
+                          [(ngModel)]="playbackSpeed"
+                          (change)="changePlaybackSpeed()">
+                    <option value="0.5">0.5x</option>
+                    <option value="0.75">0.75x</option>
+                    <option value="1">1x</option>
+                    <option value="1.25">1.25x</option>
+                    <option value="1.5">1.5x</option>
+                    <option value="2">2x</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <ng-template #videoPlaceholder>
+            <div class="video-placeholder">
+              <div class="placeholder-content">
+                <span class="placeholder-icon">🎥</span>
+                <h3 class="placeholder-title">Video đang được chuẩn bị</h3>
+                <p class="placeholder-text">Nội dung video sẽ sớm được cập nhật</p>
+              </div>
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- Video Notes -->
+        <div class="video-notes">
+          <div class="notes-header">
+            <h3 class="notes-title">📝 Ghi chú video</h3>
+            <button type="button" 
+                    class="btn btn-secondary btn-small"
+                    (click)="addNote()">
+              Thêm ghi chú
+            </button>
+          </div>
+          
+          <div class="notes-list" *ngIf="videoNotes.length > 0">
+            <div *ngFor="let note of videoNotes; let i = index" class="note-item">
+              <div class="note-time" (click)="seekToTime(note.timestamp)">
+                {{ formatTime(note.timestamp) }}
+              </div>
+              <div class="note-content">
+                <p class="note-text">{{ note.content }}</p>
+                <button type="button" 
+                        class="delete-note-btn"
+                        (click)="deleteNote(i)">
+                  🗑️
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="no-notes" *ngIf="videoNotes.length === 0">
+            <span class="no-notes-text">Chưa có ghi chú nào</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Document Content -->
+      <div class="document-section" 
+           *ngIf="currentLesson.lessonType === 'DOCUMENT'">
+        
+        <div class="document-container">
+          <div class="document-viewer" *ngIf="currentLesson.contentUrl; else documentPlaceholder">
+            
+            <!-- PDF Viewer -->
+            <div class="pdf-viewer" *ngIf="isPdfDocument">
+              <embed [src]="currentLesson.contentUrl" 
+                     type="application/pdf" 
+                     class="pdf-embed">
+              
+              <!-- PDF Controls -->
+              <div class="pdf-controls">
+                <button type="button" 
+                        class="btn btn-secondary"
+                        (click)="downloadDocument()">
+                  📥 Tải xuống
+                </button>
+                <button type="button" 
+                        class="btn btn-secondary"
+                        (click)="openDocumentFullscreen()">
+                  🔍 Toàn màn hình
+                </button>
+              </div>
+            </div>
+            
+            <!-- Text Document -->
+            <div class="text-document" *ngIf="!isPdfDocument">
+              <div class="document-content" [innerHTML]="documentContent"></div>
+            </div>
+          </div>
+          
+          <ng-template #documentPlaceholder>
+            <div class="document-placeholder">
+              <div class="placeholder-content">
+                <span class="placeholder-icon">📄</span>
+                <h3 class="placeholder-title">Tài liệu đang được chuẩn bị</h3>
+                <p class="placeholder-text">Nội dung tài liệu sẽ sớm được cập nhật</p>
+              </div>
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- Document Summary -->
+        <div class="document-summary">
+          <h3 class="summary-title">📋 Tóm tắt nội dung</h3>
+          <div class="summary-content">
+            <ul class="summary-points">
+              <li>Các khái niệm cơ bản và định nghĩa quan trọng</li>
+              <li>Ví dụ thực tế và case study</li>
+              <li>Bài tập và câu hỏi thảo luận</li>
+              <li>Tài liệu tham khảo bổ sung</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quiz Content -->
+      <div class="quiz-section" 
+           *ngIf="currentLesson.lessonType === 'QUIZ'">
+        
+        <div class="quiz-container">
+          <div class="quiz-header">
+            <h3 class="quiz-title">🎯 Bài kiểm tra</h3>
+            <div class="quiz-info">
+              <span class="question-counter">
+                Câu {{ currentQuestionIndex + 1 }} / {{ quizQuestions.length }}
+              </span>
+              <span class="quiz-score" *ngIf="quizCompleted">
+                Điểm: {{ quizScore }} / {{ quizQuestions.length }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Quiz Questions -->
+          <div class="quiz-content" *ngIf="!quizCompleted">
+            <div class="question-container" *ngIf="currentQuestion">
+              <h4 class="question-text">{{ currentQuestion.question }}</h4>
+              
+              <div class="answers-list">
+                <label *ngFor="let answer of currentQuestion.answers; let i = index" 
+                       class="answer-option"
+                       [class.selected]="selectedAnswer === i">
+                  <input type="radio" 
+                         [name]="'question-' + currentQuestionIndex"
+                         [value]="i"
+                         [(ngModel)]="selectedAnswer"
+                         class="answer-radio">
+                  <span class="answer-text">{{ answer.text }}</span>
+                </label>
+              </div>
+
+              <div class="question-actions">
+                <button type="button" 
+                        class="btn btn-secondary"
+                        (click)="previousQuestion()"
+                        [disabled]="currentQuestionIndex === 0">
+                  Câu trước
+                </button>
+                
+                <button type="button" 
+                        class="btn btn-primary"
+                        (click)="nextQuestion()"
+                        [disabled]="selectedAnswer === null">
+                  {{ isLastQuestion ? 'Hoàn thành' : 'Câu tiếp theo' }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quiz Results -->
+          <div class="quiz-results" *ngIf="quizCompleted">
+            <div class="results-summary">
+              <div class="score-display">
+                <div class="score-circle" [class]="getScoreClass()">
+                  <span class="score-text">{{ getScorePercentage() }}%</span>
+                </div>
+                <h4 class="score-label">{{ getScoreMessage() }}</h4>
+              </div>
+              
+              <div class="results-details">
+                <div class="detail-item">
+                  <span class="detail-label">Đúng:</span>
+                  <span class="detail-value correct">{{ quizScore }} / {{ quizQuestions.length }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Sai:</span>
+                  <span class="detail-value incorrect">{{ quizQuestions.length - quizScore }} / {{ quizQuestions.length }}</span>
+                </div>
+              </div>
+
+              <div class="results-actions">
+                <button type="button" 
+                        class="btn btn-secondary"
+                        (click)="retakeQuiz()">
+                  🔄 Làm lại
+                </button>
+                <button type="button" 
+                        class="btn btn-primary"
+                        (click)="continueToNextLesson()"
+                        [disabled]="!hasNextLesson">
+                  Tiếp tục
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lesson Actions -->
+    <div class="lesson-actions">
+      <div class="completion-section">
+        <label class="completion-checkbox">
+          <input type="checkbox" 
+                 [(ngModel)]="isLessonCompleted"
+                 (change)="toggleLessonCompletion()"
+                 class="checkbox-input">
+          <span class="checkbox-custom"></span>
+          <span class="checkbox-text">Đánh dấu hoàn thành bài học</span>
+        </label>
+      </div>
+
+      <div class="action-buttons">
+        <button type="button" 
+                class="btn btn-outline"
+                (click)="bookmarkLesson()">
+          <span class="btn-icon">{{ isBookmarked ? '⭐' : '☆' }}</span>
+          {{ isBookmarked ? 'Đã lưu' : 'Lưu bài học' }}
+        </button>
+        
+        <button type="button" 
+                class="btn btn-secondary"
+                (click)="shareLesson()">
+          <span class="btn-icon">📤</span>
+          Chia sẻ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Đang tải nội dung bài học...</p>
+  </div>
+</div>
+
+<!-- Add Note Modal -->
+<div *ngIf="showAddNoteModal" class="modal-overlay" (click)="closeAddNoteModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">📝 Thêm ghi chú</h2>
+      <button type="button" class="close-btn" (click)="closeAddNoteModal()">✕</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Thời điểm:</label>
+        <span class="time-display">{{ formatTime(currentVideoTime) }}</span>
+      </div>
+      
+      <div class="form-group">
+        <label for="noteContent" class="form-label">Nội dung ghi chú:</label>
+        <textarea id="noteContent"
+                  class="form-textarea"
+                  [(ngModel)]="newNoteContent"
+                  placeholder="Nhập nội dung ghi chú..."
+                  rows="4"></textarea>
+      </div>
+    </div>
+    
+    <div class="modal-actions">
+      <button type="button" 
+              class="btn btn-outline" 
+              (click)="closeAddNoteModal()">
+        Hủy
+      </button>
+      <button type="button" 
+              class="btn btn-primary"
+              (click)="saveNote()"
+              [disabled]="!newNoteContent.trim()">
+        Lưu ghi chú
+      </button>
+    </div>
+  </div>
+</div>

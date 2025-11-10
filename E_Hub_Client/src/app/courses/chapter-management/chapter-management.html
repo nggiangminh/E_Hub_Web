@@ -1,0 +1,354 @@
+<!-- Chapter Management Template -->
+<div class="chapter-management-container">
+  <!-- Decorative Elements -->
+  <div class="geometric-decoration decoration-1"></div>
+  <div class="geometric-decoration decoration-2"></div>
+  <div class="geometric-decoration decoration-3"></div>
+
+  <!-- Header -->
+  <div class="management-header">
+    <div class="header-navigation">
+      <button type="button" class="back-button" [routerLink]="['/courses', courseId]">
+        <span class="back-icon">←</span>
+        <span class="back-text">Quay lại khóa học</span>
+      </button>
+    </div>
+    
+    <div class="header-info" *ngIf="courseTitle">
+      <h1 class="page-title">📚 Quản lý chương học</h1>
+      <p class="course-title">{{ courseTitle }}</p>
+    </div>
+
+    <div class="header-actions">
+      <button type="button" 
+              class="btn btn-primary"
+              (click)="openChapterModal()">
+        <span class="btn-icon">➕</span>
+        Thêm chương mới
+      </button>
+    </div>
+  </div>
+
+  <!-- Chapter Statistics -->
+  <div class="statistics-section" *ngIf="!isLoading">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">📖</div>
+        <div class="stat-info">
+          <div class="stat-number">{{ chapters.length }}</div>
+          <div class="stat-label">Chương học</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-info">
+          <div class="stat-number">{{ totalLessons }}</div>
+          <div class="stat-label">Tổng bài học</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-info">
+          <div class="stat-number">{{ publishedChapters }}</div>
+          <div class="stat-label">Đã xuất bản</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">⏱️</div>
+        <div class="stat-info">
+          <div class="stat-number">{{ totalDurationFormatted }}</div>
+          <div class="stat-label">Thời lượng</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chapters List -->
+  <div class="chapters-section" *ngIf="!isLoading">
+    <div class="section-header">
+      <h2 class="section-title">📋 Danh sách chương</h2>
+      <div class="section-actions">
+        <button type="button" 
+                class="btn btn-secondary"
+                (click)="reorderMode = !reorderMode">
+          <span class="btn-icon">{{ reorderMode ? '✅' : '🔄' }}</span>
+          {{ reorderMode ? 'Hoàn tất' : 'Sắp xếp' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Reorder Instructions -->
+    <div class="reorder-notice" *ngIf="reorderMode">
+      <span class="notice-icon">ℹ️</span>
+      <span class="notice-text">Kéo thả các chương để sắp xếp lại thứ tự</span>
+    </div>
+
+    <!-- Chapters List Container -->
+    <div class="chapters-list" 
+         [class.reorder-mode]="reorderMode">
+      
+      <div *ngFor="let chapter of chapters; let i = index; trackBy: trackByChapterId" 
+           class="chapter-item"
+           [class.reorder-item]="reorderMode"
+           [attr.data-chapter-id]="chapter.id">
+        
+        <!-- Reorder Handle -->
+        <div class="reorder-handle" *ngIf="reorderMode">
+          <span class="handle-icon">⋮⋮</span>
+        </div>
+
+        <!-- Chapter Content -->
+        <div class="chapter-content">
+          <div class="chapter-header">
+            <div class="chapter-main-info">
+              <div class="chapter-number">{{ i + 1 }}</div>
+              <div class="chapter-details">
+                <h3 class="chapter-title">{{ chapter.title }}</h3>
+                <p class="chapter-description" *ngIf="chapter.description">
+                  {{ chapter.description }}
+                </p>
+                
+                <div class="chapter-meta">
+                  <span class="meta-item">
+                    <span class="meta-icon">🎯</span>
+                    <span class="meta-text">{{ getChapterLessonCount(chapter.id) }} bài học</span>
+                  </span>
+                  
+                  <span class="meta-item">
+                    <span class="meta-icon">⏱️</span>
+                    <span class="meta-text">{{ getChapterDuration(chapter.id) }}</span>
+                  </span>
+                  
+                  <span class="meta-item">
+                    <span class="meta-icon">📅</span>
+                    <span class="meta-text">{{ formatDate(chapter.updatedAt) }}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chapter Actions -->
+            <div class="chapter-actions" *ngIf="!reorderMode">
+              <button type="button" 
+                      class="action-btn view-btn"
+                      (click)="viewChapterLessons(chapter)"
+                      title="Xem bài học">
+                👁️
+              </button>
+              
+              <button type="button" 
+                      class="action-btn edit-btn"
+                      (click)="editChapter(chapter)"
+                      title="Chỉnh sửa">
+                ✏️
+              </button>
+              
+              <button type="button" 
+                      class="action-btn delete-btn"
+                      (click)="deleteChapter(chapter)"
+                      title="Xóa chương">
+                🗑️
+              </button>
+            </div>
+          </div>
+
+          <!-- Chapter Lessons Preview -->
+          <div class="lessons-preview" 
+               *ngIf="expandedChapters.has(chapter.id) && getChapterLessons(chapter.id).length > 0">
+            
+            <div class="lessons-header">
+              <h4 class="lessons-title">Bài học trong chương</h4>
+              <button type="button" 
+                      class="btn btn-small btn-secondary"
+                      (click)="manageLessons(chapter)">
+                Quản lý bài học
+              </button>
+            </div>
+
+            <div class="lessons-list">
+              <div *ngFor="let lesson of getChapterLessons(chapter.id); let lessonIndex = index" 
+                   class="lesson-item">
+                
+                <div class="lesson-info">
+                  <div class="lesson-type-icon" [class]="'type-' + lesson.lessonType.toLowerCase()">
+                    {{ getLessonTypeIcon(lesson.lessonType) }}
+                  </div>
+                  
+                  <div class="lesson-details">
+                    <span class="lesson-title">{{ lesson.title }}</span>
+                    <div class="lesson-meta">
+                      <span class="lesson-type">{{ getLessonTypeDisplay(lesson.lessonType) }}</span>
+                      <span class="lesson-duration" *ngIf="lesson.durationSeconds">
+                        {{ formatDuration(lesson.durationSeconds) }}
+                      </span>
+                      <span class="lesson-status" [class]="lesson.published ? 'published' : 'draft'">
+                        {{ lesson.published ? 'Đã xuất bản' : 'Nháp' }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="lesson-actions">
+                  <button type="button" 
+                          class="lesson-action-btn"
+                          title="Chỉnh sửa bài học">
+                    ✏️
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Expand/Collapse Toggle -->
+          <div class="chapter-toggle" *ngIf="!reorderMode && getChapterLessons(chapter.id).length > 0">
+            <button type="button" 
+                    class="toggle-btn"
+                    (click)="toggleChapterExpansion(chapter.id)">
+              <span class="toggle-icon" [class.expanded]="expandedChapters.has(chapter.id)">
+                ▼
+              </span>
+              <span class="toggle-text">
+                {{ expandedChapters.has(chapter.id) ? 'Thu gọn' : 'Xem bài học' }}
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="chapters.length === 0" class="empty-state">
+        <div class="empty-icon">📚</div>
+        <h3 class="empty-title">Chưa có chương nào</h3>
+        <p class="empty-description">
+          Bắt đầu tạo chương đầu tiên cho khóa học của bạn
+        </p>
+        <button type="button" 
+                class="btn btn-primary btn-large"
+                (click)="openChapterModal()">
+          <span class="btn-icon">➕</span>
+          Tạo chương đầu tiên
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Đang tải danh sách chương...</p>
+  </div>
+</div>
+
+<!-- Chapter Modal -->
+<div *ngIf="showChapterModal" class="modal-overlay" (click)="closeChapterModal()">
+  <div class="modal-content large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">
+        {{ editingChapter ? '✏️ Chỉnh sửa chương' : '➕ Thêm chương mới' }}
+      </h2>
+      <button type="button" class="close-btn" (click)="closeChapterModal()">✕</button>
+    </div>
+    
+    <form class="chapter-form" (ngSubmit)="saveChapter()" #chapterForm="ngForm">
+      <div class="modal-body">
+        <!-- Chapter Title -->
+        <div class="form-group">
+          <label for="chapterTitle" class="form-label">Tiêu đề chương *</label>
+          <input type="text" 
+                 id="chapterTitle"
+                 name="chapterTitle"
+                 class="form-input"
+                 [(ngModel)]="chapterFormData.title"
+                 #titleInput="ngModel"
+                 required
+                 maxlength="200"
+                 placeholder="Nhập tiêu đề chương">
+          <div class="form-error" *ngIf="titleInput.invalid && titleInput.touched">
+            <span *ngIf="titleInput.errors?.['required']">Tiêu đề chương là bắt buộc</span>
+            <span *ngIf="titleInput.errors?.['maxlength']">Tiêu đề không được vượt quá 200 ký tự</span>
+          </div>
+          <div class="char-count">{{ chapterFormData.title.length }}/200</div>
+        </div>
+
+        <!-- Chapter Description -->
+        <div class="form-group">
+          <label for="chapterDescription" class="form-label">Mô tả chương</label>
+          <textarea id="chapterDescription"
+                    name="chapterDescription"
+                    class="form-textarea"
+                    [(ngModel)]="chapterFormData.description"
+                    maxlength="500"
+                    rows="4"
+                    placeholder="Mô tả nội dung chương học (tùy chọn)"></textarea>
+          <div class="char-count">{{ chapterFormData.description.length }}/500</div>
+        </div>
+
+        <!-- Chapter Order -->
+        <div class="form-group" *ngIf="!editingChapter">
+          <label for="chapterOrder" class="form-label">Vị trí chương</label>
+          <select id="chapterOrder"
+                  name="chapterOrder"
+                  class="form-select"
+                  [(ngModel)]="chapterFormData.orderIndex">
+            <option value="">Chọn vị trí (mặc định: cuối danh sách)</option>
+            <option *ngFor="let position of getAvailablePositions(); let i = index" 
+                    [value]="i + 1">
+              Vị trí {{ i + 1 }}{{ i === 0 ? ' (đầu danh sách)' : i === getAvailablePositions().length - 1 ? ' (cuối danh sách)' : '' }}
+            </option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" 
+                class="btn btn-outline" 
+                (click)="closeChapterModal()">
+          Hủy
+        </button>
+        <button type="submit" 
+                class="btn btn-primary"
+                [disabled]="!chapterForm.valid || isSubmitting">
+          <span class="btn-icon">{{ editingChapter ? '💾' : '➕' }}</span>
+          {{ editingChapter ? 'Cập nhật' : 'Tạo chương' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div *ngIf="showDeleteModal" class="modal-overlay" (click)="showDeleteModal = false">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header danger">
+      <h2 class="modal-title">🗑️ Xác nhận xóa</h2>
+      <button type="button" class="close-btn" (click)="showDeleteModal = false">✕</button>
+    </div>
+    
+    <div class="modal-body">
+      <p class="delete-warning">
+        Bạn có chắc chắn muốn xóa chương <strong>"{{ chapterToDelete?.title }}"</strong>?
+      </p>
+      <p class="delete-note">
+        ⚠️ Thao tác này sẽ xóa vĩnh viễn chương và tất cả bài học bên trong. Không thể hoàn tác!
+      </p>
+    </div>
+    
+    <div class="modal-actions">
+      <button type="button" 
+              class="btn btn-outline" 
+              (click)="showDeleteModal = false">
+        Hủy
+      </button>
+      <button type="button" 
+              class="btn btn-danger"
+              (click)="confirmDeleteChapter()"
+              [disabled]="isSubmitting">
+        <span class="btn-icon">🗑️</span>
+        Xóa chương
+      </button>
+    </div>
+  </div>
+</div>

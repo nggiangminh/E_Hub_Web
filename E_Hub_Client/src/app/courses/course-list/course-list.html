@@ -1,0 +1,258 @@
+<!-- Course List Template -->
+<div class="course-list-container">
+  <!-- Decorative Elements -->
+  <div class="geometric-decoration decoration-1"></div>
+  <div class="geometric-decoration decoration-2"></div>
+  <div class="geometric-decoration decoration-3"></div>
+
+  <!-- Header Section -->
+  <div class="course-header">
+    <div class="header-content">
+      <h1 class="page-title">📚 Khóa học</h1>
+      <p class="page-subtitle">Khám phá và tham gia các khóa học chất lượng cao</p>
+    </div>
+    
+    <div class="header-actions">
+      <button type="button" 
+              class="btn btn-primary"
+              routerLink="/courses/new">
+        <span class="btn-icon">➕</span>
+        Tạo khóa học mới
+      </button>
+    </div>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="search-filter-section">
+    
+    <!-- Search Bar -->
+    <div class="search-container">
+      <input type="text" 
+             [(ngModel)]="searchQuery"
+             (ngModelChange)="onSearch()"
+             class="search-input"
+             placeholder="🔍 Tìm kiếm khóa học theo tên hoặc tác giả...">
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-container">
+      <div class="filter-group">
+        <label class="filter-label">Mức độ:</label>
+        <select [(ngModel)]="selectedLevel" (ngModelChange)="onFilterChange()" class="filter-select">
+          <option value="">Tất cả mức độ</option>
+          <option value="BEGINNER">Cơ bản</option>
+          <option value="INTERMEDIATE">Trung cấp</option>
+          <option value="ADVANCED">Nâng cao</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label class="filter-label">Trạng thái:</label>
+        <select [(ngModel)]="selectedStatus" (ngModelChange)="onFilterChange()" class="filter-select">
+          <option value="">Tất cả trạng thái</option>
+          <option value="DRAFT">Nháp</option>
+          <option value="PUBLISHED">Đã xuất bản</option>
+          <option value="ARCHIVED">Đã lưu trữ</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Giá:</label>
+        <select [(ngModel)]="selectedPriceRange" (ngModelChange)="onFilterChange()" class="filter-select">
+          <option value="">Tất cả giá</option>
+          <option value="free">Miễn phí</option>
+          <option value="0-500000">Dưới 500,000₫</option>
+          <option value="500000-1000000">500,000₫ - 1,000,000₫</option>
+          <option value="1000000+">Trên 1,000,000₫</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Sắp xếp:</label>
+        <select [(ngModel)]="sortBy" (ngModelChange)="onSortChange()" class="filter-select">
+          <option value="newest">Mới nhất</option>
+          <option value="oldest">Cũ nhất</option>
+          <option value="price-low">Giá thấp đến cao</option>
+          <option value="price-high">Giá cao đến thấp</option>
+          <option value="name-az">Tên A-Z</option>
+          <option value="name-za">Tên Z-A</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-container">
+      <div class="stat-card">
+        <span class="stat-number">{{ totalCourses }}</span>
+        <span class="stat-label">Tổng khóa học</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">{{ publishedCourses }}</span>
+        <span class="stat-label">Đã xuất bản</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">{{ freeCourses }}</span>
+        <span class="stat-label">Miễn phí</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Course Grid -->
+  <div class="courses-grid" *ngIf="!isLoading">
+    <div *ngFor="let course of courses; trackBy: trackByCourseId" class="course-card">
+      
+      <!-- Course Thumbnail -->
+      <div class="course-thumbnail">
+        <img [src]="course.thumbnailUrl || defaultThumbnail" 
+             [alt]="course.title" 
+             class="thumbnail-image">
+        
+        <!-- Status Badge -->
+        <div class="status-badge" [class]="'status-' + course.status.toLowerCase()">
+          {{ getStatusDisplay(course.status) }}
+        </div>
+
+        <!-- Price Badge -->
+        <div class="price-badge">
+          {{ course.price === 0 ? 'Miễn phí' : formatPrice(course.price) }}
+        </div>
+      </div>
+
+      <!-- Course Info -->
+      <div class="course-info">
+        
+        <!-- Level Badge -->
+        <div class="level-badge" [class]="'level-' + course.level.toLowerCase()">
+          {{ getLevelDisplay(course.level) }}
+        </div>
+
+        <h3 class="course-title">{{ course.title }}</h3>
+        
+        <p class="course-description">{{ truncateText(course.description, 100) }}</p>
+
+        <!-- Course Meta -->
+        <div class="course-meta">
+          <div class="meta-item">
+            <span class="meta-icon">👨‍🏫</span>
+            <span class="meta-text">{{ course.author }}</span>
+          </div>
+          
+          <div class="meta-item">
+            <span class="meta-icon">📅</span>
+            <span class="meta-text">{{ formatDate(course.createdAt) }}</span>
+          </div>
+          
+          <div class="meta-item">
+            <span class="meta-icon">⏰</span>
+            <span class="meta-text">{{ formatDate(course.updatedAt) }}</span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="course-actions">
+          <button type="button" 
+                  class="action-btn view-btn"
+                  [routerLink]="['/courses', course.id]"
+                  title="Xem chi tiết">
+            👁️ Xem
+          </button>
+          
+          <button type="button" 
+                  class="action-btn edit-btn"
+                  [routerLink]="['/courses', course.id, 'edit']"
+                  title="Chỉnh sửa">
+            ✏️ Sửa
+          </button>
+          
+          <button type="button" 
+                  class="action-btn enroll-btn"
+                  (click)="enrollCourse(course)"
+                  [disabled]="course.status !== 'PUBLISHED'"
+                  title="Đăng ký học">
+            🎯 Học
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Đang tải danh sách khóa học...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && courses.length === 0" class="empty-state">
+    <div class="empty-icon">📚</div>
+    <h3 class="empty-title">Không tìm thấy khóa học</h3>
+    <p class="empty-description">
+      {{ searchQuery ? 'Không có kết quả nào phù hợp với tìm kiếm của bạn' : 'Chưa có khóa học nào được tạo' }}
+    </p>
+    <button type="button" class="btn btn-primary" routerLink="/courses/new">
+      Tạo khóa học đầu tiên
+    </button>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-container" *ngIf="totalPages > 1">
+    <button type="button" 
+            class="pagination-btn"
+            [disabled]="currentPage === 1"
+            (click)="goToPage(currentPage - 1)">
+      ← Trước
+    </button>
+    
+    <div class="page-numbers">
+      <button *ngFor="let page of getPageNumbers()" 
+              type="button"
+              class="page-btn"
+              [class.active]="page === currentPage"
+              [disabled]="page === '...'"
+              (click)="page !== '...' && goToPage(+page)">
+        {{ page }}
+      </button>
+    </div>
+    
+    <button type="button" 
+            class="pagination-btn"
+            [disabled]="currentPage === totalPages"
+            (click)="goToPage(currentPage + 1)">
+      Sau →
+    </button>
+  </div>
+</div>
+
+<!-- Enrollment Confirmation Modal -->
+<div *ngIf="showEnrollModal" class="modal-overlay" (click)="showEnrollModal = false">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h2 class="modal-title">📖 Xác nhận đăng ký học</h2>
+    <div *ngIf="selectedCourse" class="enrollment-info">
+      <img [src]="selectedCourse.thumbnailUrl || defaultThumbnail" 
+           [alt]="selectedCourse.title"
+           class="modal-course-image">
+      
+      <div class="modal-course-info">
+        <h3 class="modal-course-title">{{ selectedCourse.title }}</h3>
+        <p class="modal-course-author">Tác giả: {{ selectedCourse.author }}</p>
+        <p class="modal-course-level">Mức độ: {{ getLevelDisplay(selectedCourse.level) }}</p>
+        <p class="modal-course-price">
+          Học phí: {{ selectedCourse.price === 0 ? 'Miễn phí' : formatPrice(selectedCourse.price) }}
+        </p>
+      </div>
+    </div>
+    
+    <p class="modal-text">
+      Bạn có chắc chắn muốn đăng ký học khóa học này không?
+    </p>
+    
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" (click)="showEnrollModal = false">
+        Hủy bỏ
+      </button>
+      <button type="button" class="btn btn-primary" (click)="confirmEnrollment()">
+        Xác nhận đăng ký
+      </button>
+    </div>
+  </div>
+</div>

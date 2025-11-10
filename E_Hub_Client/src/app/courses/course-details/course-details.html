@@ -1,0 +1,374 @@
+<!-- Course Details Template -->
+<div class="course-details-container">
+  <!-- Decorative Elements -->
+  <div class="geometric-decoration decoration-1"></div>
+  <div class="geometric-decoration decoration-2"></div>
+  <div class="geometric-decoration decoration-3"></div>
+
+  <!-- Back Navigation -->
+  <div class="back-navigation">
+    <button type="button" class="back-button" routerLink="/courses">
+      <span class="back-icon">←</span>
+      <span class="back-text">Quay lại danh sách</span>
+    </button>
+  </div>
+
+  <!-- Course Hero Section -->
+  <div class="course-hero" *ngIf="course">
+    <div class="hero-content">
+      
+      <!-- Course Thumbnail -->
+      <div class="course-thumbnail">
+        <img [src]="course.thumbnailUrl || defaultThumbnail" 
+             [alt]="course.title" 
+             class="hero-image">
+        
+        <!-- Status Badge -->
+        <div class="status-badge" [class]="'status-' + course.status.toLowerCase()">
+          {{ getStatusDisplay(course.status) }}
+        </div>
+      </div>
+
+      <!-- Course Info -->
+      <div class="course-info">
+        <div class="course-badges">
+          <span class="level-badge" [class]="'level-' + course.level.toLowerCase()">
+            {{ getLevelDisplay(course.level) }}
+          </span>
+          
+          <span class="price-badge">
+            {{ course.price === 0 ? 'Miễn phí' : formatPrice(course.price) }}
+          </span>
+        </div>
+
+        <h1 class="course-title">{{ course.title }}</h1>
+        
+        <p class="course-description">{{ course.description }}</p>
+
+        <!-- Course Meta -->
+        <div class="course-meta">
+          <div class="meta-row">
+            <span class="meta-label">👨‍🏫 Giảng viên:</span>
+            <span class="meta-value">{{ course.author }}</span>
+          </div>
+          
+          <div class="meta-row">
+            <span class="meta-label">📅 Ngày tạo:</span>
+            <span class="meta-value">{{ formatDate(course.createdAt) }}</span>
+          </div>
+          
+          <div class="meta-row">
+            <span class="meta-label">🔄 Cập nhật:</span>
+            <span class="meta-value">{{ formatDate(course.updatedAt) }}</span>
+          </div>
+
+          <div class="meta-row">
+            <span class="meta-label">📖 Số chương:</span>
+            <span class="meta-value">{{ chapters.length }} chương</span>
+          </div>
+
+          <div class="meta-row">
+            <span class="meta-label">🎯 Bài học:</span>
+            <span class="meta-value">{{ totalLessons }} bài học</span>
+          </div>
+
+          <div class="meta-row">
+            <span class="meta-label">⏱️ Thời lượng:</span>
+            <span class="meta-value">{{ formatDuration(totalDuration) }}</span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="hero-actions">
+          <button type="button" 
+                  class="btn btn-primary btn-large"
+                  (click)="enrollCourse()"
+                  [disabled]="course.status !== 'PUBLISHED' || isEnrolled">
+            <span class="btn-icon">🎯</span>
+            {{ isEnrolled ? 'Đã đăng ký' : 'Đăng ký học' }}
+          </button>
+          
+          <button type="button" 
+                  class="btn btn-secondary btn-large"
+                  (click)="showPreviewModal = true"
+                  *ngIf="course.status === 'PUBLISHED' && chapters.length > 0">
+            <span class="btn-icon">👀</span>
+            Xem thử
+          </button>
+
+          <button type="button" 
+                  class="btn btn-outline btn-large"
+                  (click)="shareCourse()">
+            <span class="btn-icon">📤</span>
+            Chia sẻ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Course Content -->
+  <div class="course-content">
+    
+    <!-- Course Curriculum -->
+    <div class="curriculum-section">
+      <div class="section-header">
+        <h2 class="section-title">📚 Nội dung khóa học</h2>
+        <div class="section-actions">
+          <button type="button" 
+                  class="btn btn-secondary"
+                  (click)="expandAllChapters()">
+            {{ allExpanded ? 'Thu gọn tất cả' : 'Mở rộng tất cả' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="chapters-list">
+        <div *ngFor="let chapter of chapters; let chapterIndex = index; trackBy: trackByChapterId" 
+             class="chapter-card">
+          
+          <!-- Chapter Header -->
+          <div class="chapter-header" (click)="toggleChapter(chapter.id)">
+            <div class="chapter-info">
+              <span class="chapter-number">{{ chapterIndex + 1 }}</span>
+              <div class="chapter-details">
+                <h3 class="chapter-title">{{ chapter.title }}</h3>
+                <p class="chapter-description">{{ chapter.description }}</p>
+                <div class="chapter-stats">
+                  <span class="stat">{{ getLessonCount(chapter.id) }} bài học</span>
+                  <span class="stat">{{ getChapterDuration(chapter.id) }}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="chapter-toggle">
+              <span class="toggle-icon" 
+                    [class.expanded]="isChapterExpanded(chapter.id)">
+                ▼
+              </span>
+            </div>
+          </div>
+
+          <!-- Chapter Lessons -->
+          <div class="chapter-content" 
+               [class.expanded]="isChapterExpanded(chapter.id)">
+            
+            <div class="lessons-list" *ngIf="getChapterLessons(chapter.id) as lessons">
+              <div *ngFor="let lesson of lessons; let lessonIndex = index; trackBy: trackByLessonId" 
+                   class="lesson-item">
+                
+                <div class="lesson-info">
+                  <div class="lesson-icon" [class]="'type-' + lesson.lessonType.toLowerCase()">
+                    {{ getLessonTypeIcon(lesson.lessonType) }}
+                  </div>
+                  
+                  <div class="lesson-details">
+                    <h4 class="lesson-title">{{ lesson.title }}</h4>
+                    <p class="lesson-description" *ngIf="lesson.description">
+                      {{ lesson.description }}
+                    </p>
+                    
+                    <div class="lesson-meta">
+                      <span class="lesson-type">{{ getLessonTypeDisplay(lesson.lessonType) }}</span>
+                      <span class="lesson-duration" *ngIf="lesson.durationSeconds">
+                        {{ formatDuration(lesson.durationSeconds) }}
+                      </span>
+                      <span class="lesson-status" [class]="lesson.published ? 'published' : 'draft'">
+                        {{ lesson.published ? 'Đã xuất bản' : 'Nháp' }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="lesson-actions">
+                  <button type="button" 
+                          class="lesson-btn preview-btn"
+                          (click)="previewLesson(lesson)"
+                          [disabled]="!lesson.published"
+                          title="Xem trước">
+                    👁️
+                  </button>
+                  
+                  <button type="button" 
+                          class="lesson-btn play-btn"
+                          [routerLink]="['/courses', course!.id, 'lessons', lesson.id]"
+                          [disabled]="!lesson.published || !isEnrolled"
+                          title="Học bài này">
+                    ▶️
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- No Lessons State -->
+            <div *ngIf="getChapterLessons(chapter.id).length === 0" class="no-lessons">
+              <span class="no-lessons-text">Chưa có bài học nào trong chương này</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- No Chapters State -->
+      <div *ngIf="chapters.length === 0" class="no-chapters">
+        <div class="no-content-icon">📖</div>
+        <h3 class="no-content-title">Chưa có nội dung</h3>
+        <p class="no-content-description">Khóa học này chưa có chương nào được tạo.</p>
+      </div>
+    </div>
+
+    <!-- Course Statistics -->
+    <div class="statistics-section">
+      <h2 class="section-title">📊 Thống kê khóa học</h2>
+      
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">📚</div>
+          <div class="stat-info">
+            <div class="stat-number">{{ chapters.length }}</div>
+            <div class="stat-label">Chương học</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">🎯</div>
+          <div class="stat-info">
+            <div class="stat-number">{{ totalLessons }}</div>
+            <div class="stat-label">Bài học</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">⏱️</div>
+          <div class="stat-info">
+            <div class="stat-number">{{ formatDuration(totalDuration) }}</div>
+            <div class="stat-label">Thời lượng</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-info">
+            <div class="stat-number">{{ publishedLessons }}</div>
+            <div class="stat-label">Đã xuất bản</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Đang tải thông tin khóa học...</p>
+  </div>
+</div>
+
+<!-- Lesson Preview Modal -->
+<div *ngIf="showPreviewModal" class="modal-overlay" (click)="showPreviewModal = false">
+  <div class="modal-content large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">👁️ Xem trước bài học</h2>
+      <button type="button" class="close-btn" (click)="showPreviewModal = false">✕</button>
+    </div>
+    
+    <div *ngIf="selectedLesson" class="lesson-preview-content">
+      <h3 class="preview-lesson-title">{{ selectedLesson.title }}</h3>
+      
+      <div class="preview-lesson-meta">
+        <span class="preview-type">{{ getLessonTypeDisplay(selectedLesson.lessonType) }}</span>
+        <span class="preview-duration" *ngIf="selectedLesson.durationSeconds">
+          {{ formatDuration(selectedLesson.durationSeconds) }}
+        </span>
+      </div>
+
+      <div class="preview-lesson-description" *ngIf="selectedLesson.description">
+        {{ selectedLesson.description }}
+      </div>
+
+      <div class="preview-content-area">
+        <!-- Video Preview -->
+        <div *ngIf="selectedLesson.lessonType === 'VIDEO'" class="video-preview">
+          <div class="video-placeholder">
+            <span class="video-icon">🎥</span>
+            <p>Video sẽ được phát ở đây</p>
+          </div>
+        </div>
+
+        <!-- Document Preview -->
+        <div *ngIf="selectedLesson.lessonType === 'DOCUMENT'" class="document-preview">
+          <div class="document-placeholder">
+            <span class="document-icon">📄</span>
+            <p>Tài liệu sẽ được hiển thị ở đây</p>
+          </div>
+        </div>
+
+        <!-- Content Preview -->
+        <div *ngIf="selectedLesson.contentPreview" class="content-preview">
+          <h4>Nội dung bài học:</h4>
+          <div class="preview-text">{{ selectedLesson.contentPreview }}</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" (click)="showPreviewModal = false">
+        Đóng
+      </button>
+      <button type="button" 
+              class="btn btn-primary" 
+              [routerLink]="['/courses', course!.id, 'lessons', selectedLesson!.id]"
+              [disabled]="!isEnrolled">
+        Học bài này
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Share Course Modal -->
+<div *ngIf="showShareModal" class="modal-overlay" (click)="showShareModal = false">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">📤 Chia sẻ khóa học</h2>
+      <button type="button" class="close-btn" (click)="showShareModal = false">✕</button>
+    </div>
+    
+    <div class="share-content">
+      <div class="share-url">
+        <label>Liên kết khóa học:</label>
+        <div class="url-input-group">
+          <input type="text" 
+                 [value]="shareUrl" 
+                 readonly 
+                 class="form-input"
+                 #urlInput>
+          <button type="button" 
+                  class="btn btn-secondary"
+                  (click)="copyShareUrl(urlInput)">
+            📋 Sao chép
+          </button>
+        </div>
+      </div>
+
+      <div class="share-social">
+        <h4>Chia sẻ trên mạng xã hội:</h4>
+        <div class="social-buttons">
+          <button type="button" class="social-btn facebook" (click)="shareOnFacebook()">
+            📘 Facebook
+          </button>
+          <button type="button" class="social-btn twitter" (click)="shareOnTwitter()">
+            🐦 Twitter
+          </button>
+          <button type="button" class="social-btn linkedin" (click)="shareOnLinkedIn()">
+            💼 LinkedIn
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" (click)="showShareModal = false">
+        Đóng
+      </button>
+    </div>
+  </div>
+</div>

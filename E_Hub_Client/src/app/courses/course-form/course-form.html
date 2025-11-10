@@ -1,0 +1,349 @@
+<!-- Course Form Template -->
+<div class="course-form-container">
+  <!-- Decorative Elements -->
+  <div class="geometric-decoration decoration-1"></div>
+  <div class="geometric-decoration decoration-2"></div>
+  <div class="geometric-decoration decoration-3"></div>
+
+  <!-- Header -->
+  <div class="form-header">
+    <button type="button" class="back-button" routerLink="/courses">
+      <span class="back-icon">←</span>
+      <span class="back-text">Quay lại danh sách</span>
+    </button>
+    
+    <h1 class="form-title">
+      {{ isEditMode ? '✏️ Chỉnh sửa khóa học' : '➕ Tạo khóa học mới' }}
+    </h1>
+  </div>
+
+  <!-- Course Form -->
+  <form class="course-form" (ngSubmit)="onSubmit()" #courseForm="ngForm" *ngIf="!isLoading">
+    
+    <!-- Basic Information Section -->
+    <div class="form-section">
+      <h2 class="section-title">📚 Thông tin cơ bản</h2>
+      
+      <div class="form-grid">
+        <!-- Course Title -->
+        <div class="form-group full-width">
+          <label for="title" class="form-label">Tiêu đề khóa học *</label>
+          <input 
+            type="text" 
+            id="title" 
+            name="title"
+            class="form-input"
+            [(ngModel)]="courseData.title"
+            #titleInput="ngModel"
+            required
+            maxlength="200"
+            placeholder="Nhập tiêu đề khóa học">
+          <div class="form-error" *ngIf="titleInput.invalid && titleInput.touched">
+            <span *ngIf="titleInput.errors?.['required']">Tiêu đề khóa học là bắt buộc</span>
+            <span *ngIf="titleInput.errors?.['maxlength']">Tiêu đề không được vượt quá 200 ký tự</span>
+          </div>
+          <div class="char-count">{{ courseData.title.length }}/200</div>
+        </div>
+
+        <!-- Course Description -->
+        <div class="form-group full-width">
+          <label for="description" class="form-label">Mô tả khóa học *</label>
+          <textarea 
+            id="description" 
+            name="description"
+            class="form-textarea"
+            [(ngModel)]="courseData.description"
+            #descriptionInput="ngModel"
+            required
+            maxlength="1000"
+            rows="4"
+            placeholder="Mô tả chi tiết về nội dung và mục tiêu của khóa học"></textarea>
+          <div class="form-error" *ngIf="descriptionInput.invalid && descriptionInput.touched">
+            <span *ngIf="descriptionInput.errors?.['required']">Mô tả khóa học là bắt buộc</span>
+            <span *ngIf="descriptionInput.errors?.['maxlength']">Mô tả không được vượt quá 1000 ký tự</span>
+          </div>
+          <div class="char-count">{{ courseData.description.length }}/1000</div>
+        </div>
+
+        <!-- Course Level -->
+        <div class="form-group">
+          <label for="level" class="form-label">Cấp độ *</label>
+          <select 
+            id="level" 
+            name="level"
+            class="form-select"
+            [(ngModel)]="courseData.level"
+            #levelInput="ngModel"
+            required>
+            <option value="">Chọn cấp độ</option>
+            <option value="BEGINNER">Cơ bản</option>
+            <option value="INTERMEDIATE">Trung bình</option>
+            <option value="ADVANCED">Nâng cao</option>
+          </select>
+          <div class="form-error" *ngIf="levelInput.invalid && levelInput.touched">
+            <span *ngIf="levelInput.errors?.['required']">Vui lòng chọn cấp độ</span>
+          </div>
+        </div>
+
+        <!-- Course Price -->
+        <div class="form-group">
+          <label for="price" class="form-label">Giá khóa học (VNĐ)</label>
+          <input 
+            type="number" 
+            id="price" 
+            name="price"
+            class="form-input"
+            [(ngModel)]="courseData.price"
+            #priceInput="ngModel"
+            min="0"
+            max="10000000"
+            placeholder="0 = Miễn phí">
+          <div class="form-error" *ngIf="priceInput.invalid && priceInput.touched">
+            <span *ngIf="priceInput.errors?.['min']">Giá không được âm</span>
+            <span *ngIf="priceInput.errors?.['max']">Giá không được vượt quá 10.000.000 VNĐ</span>
+          </div>
+          <div class="price-display">{{ formatPrice(courseData.price) }}</div>
+        </div>
+
+        <!-- Course Status -->
+        <div class="form-group">
+          <label for="status" class="form-label">Trạng thái *</label>
+          <select 
+            id="status" 
+            name="status"
+            class="form-select"
+            [(ngModel)]="courseData.status"
+            #statusInput="ngModel"
+            required>
+            <option value="">Chọn trạng thái</option>
+            <option value="DRAFT">Nháp</option>
+            <option value="PUBLISHED">Xuất bản</option>
+            <option value="ARCHIVED">Lưu trữ</option>
+          </select>
+          <div class="form-error" *ngIf="statusInput.invalid && statusInput.touched">
+            <span *ngIf="statusInput.errors?.['required']">Vui lòng chọn trạng thái</span>
+          </div>
+        </div>
+
+        <!-- Author (readonly in edit mode) -->
+        <div class="form-group">
+          <label for="author" class="form-label">Tác giả *</label>
+          <input 
+            type="text" 
+            id="author" 
+            name="author"
+            class="form-input"
+            [(ngModel)]="courseData.author"
+            #authorInput="ngModel"
+            [readonly]="isEditMode"
+            required
+            placeholder="Tên tác giả">
+          <div class="form-error" *ngIf="authorInput.invalid && authorInput.touched">
+            <span *ngIf="authorInput.errors?.['required']">Tên tác giả là bắt buộc</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Media Section -->
+    <div class="form-section">
+      <h2 class="section-title">🖼️ Hình ảnh và Media</h2>
+      
+      <!-- Thumbnail Upload -->
+      <div class="form-group full-width">
+        <label class="form-label">Ảnh thumbnail</label>
+        
+        <div class="thumbnail-upload-area">
+          <div class="current-thumbnail" *ngIf="courseData.thumbnailUrl">
+            <img [src]="courseData.thumbnailUrl" alt="Current thumbnail" class="thumbnail-preview">
+            <button type="button" class="remove-thumbnail" (click)="removeThumbnail()">
+              ✕ Xóa ảnh
+            </button>
+          </div>
+          
+          <div class="upload-zone" 
+               [class.drag-over]="isDragOver"
+               (dragover)="onDragOver($event)"
+               (dragleave)="onDragLeave($event)"
+               (drop)="onDrop($event)"
+               (click)="fileInput.click()">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">
+              <strong>Kéo thả ảnh vào đây</strong> hoặc <strong>nhấn để chọn</strong>
+            </div>
+            <div class="upload-hint">
+              Định dạng: JPG, PNG, WebP. Kích thước tối đa: 5MB
+            </div>
+            
+            <input 
+              #fileInput
+              type="file" 
+              accept="image/*" 
+              (change)="onFileSelect($event)" 
+              class="file-input"
+              hidden>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Categories and Tags Section -->
+    <div class="form-section">
+      <h2 class="section-title">🏷️ Phân loại và Tags</h2>
+      
+      <div class="form-grid">
+        <!-- Categories -->
+        <div class="form-group">
+          <label class="form-label">Danh mục</label>
+          <div class="categories-grid">
+            <label *ngFor="let category of availableCategories" class="checkbox-label">
+              <input 
+                type="checkbox" 
+                [checked]="courseData.categories.includes(category)"
+                (change)="toggleCategory(category)"
+                class="checkbox-input">
+              <span class="checkbox-custom"></span>
+              <span class="checkbox-text">{{ category }}</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Tags -->
+        <div class="form-group">
+          <label class="form-label">Tags</label>
+          <div class="tags-input-container">
+            <div class="tags-list">
+              <span *ngFor="let tag of courseData.tags; let i = index" class="tag-item">
+                {{ tag }}
+                <button type="button" (click)="removeTag(i)" class="tag-remove">✕</button>
+              </span>
+            </div>
+            <input 
+              type="text" 
+              class="tag-input"
+              placeholder="Nhập tag và nhấn Enter"
+              (keydown.enter)="addTag($event)"
+              #tagInput>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Requirements Section -->
+    <div class="form-section">
+      <h2 class="section-title">📋 Yêu cầu và Mục tiêu</h2>
+      
+      <div class="form-grid">
+        <!-- Prerequisites -->
+        <div class="form-group">
+          <label class="form-label">Kiến thức cần có</label>
+          <div class="list-input-container">
+            <div class="list-items">
+              <div *ngFor="let req of courseData.prerequisites; let i = index" class="list-item">
+                <span class="item-text">{{ req }}</span>
+                <button type="button" (click)="removePrerequisite(i)" class="item-remove">✕</button>
+              </div>
+            </div>
+            <div class="add-item-form">
+              <input 
+                type="text" 
+                class="form-input"
+                placeholder="Nhập kiến thức cần có"
+                #prereqInput>
+              <button 
+                type="button" 
+                (click)="addPrerequisite(prereqInput)"
+                class="btn btn-secondary">
+                Thêm
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Learning Objectives -->
+        <div class="form-group">
+          <label class="form-label">Mục tiêu học tập</label>
+          <div class="list-input-container">
+            <div class="list-items">
+              <div *ngFor="let obj of courseData.learningObjectives; let i = index" class="list-item">
+                <span class="item-text">{{ obj }}</span>
+                <button type="button" (click)="removeLearningObjective(i)" class="item-remove">✕</button>
+              </div>
+            </div>
+            <div class="add-item-form">
+              <input 
+                type="text" 
+                class="form-input"
+                placeholder="Nhập mục tiêu học tập"
+                #objectiveInput>
+              <button 
+                type="button" 
+                (click)="addLearningObjective(objectiveInput)"
+                class="btn btn-secondary">
+                Thêm
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button 
+        type="button" 
+        class="btn btn-outline btn-large"
+        routerLink="/courses">
+        Hủy
+      </button>
+      
+      <button 
+        type="button" 
+        class="btn btn-secondary btn-large"
+        (click)="saveDraft()"
+        [disabled]="!courseForm.valid || isSubmitting">
+        <span class="btn-icon">💾</span>
+        Lưu nháp
+      </button>
+      
+      <button 
+        type="submit" 
+        class="btn btn-primary btn-large"
+        [disabled]="!courseForm.valid || isSubmitting">
+        <span class="btn-icon">{{ isEditMode ? '💾' : '➕' }}</span>
+        {{ isEditMode ? 'Cập nhật' : 'Tạo khóa học' }}
+      </button>
+    </div>
+  </form>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">{{ isEditMode ? 'Đang tải thông tin khóa học...' : 'Đang khởi tạo form...' }}</p>
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div *ngIf="showSuccessModal" class="modal-overlay" (click)="showSuccessModal = false">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header success">
+      <h2 class="modal-title">✅ Thành công!</h2>
+      <button type="button" class="close-btn" (click)="showSuccessModal = false">✕</button>
+    </div>
+    
+    <div class="modal-body">
+      <p class="success-message">
+        {{ isEditMode ? 'Khóa học đã được cập nhật thành công!' : 'Khóa học mới đã được tạo thành công!' }}
+      </p>
+    </div>
+    
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" (click)="showSuccessModal = false">
+        Đóng
+      </button>
+      <button type="button" class="btn btn-primary" (click)="navigateToCourse()">
+        Xem khóa học
+      </button>
+    </div>
+  </div>
+</div>
