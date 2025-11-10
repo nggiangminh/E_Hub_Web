@@ -1,4 +1,4 @@
-package com.elearning.e_hub.module.user.service;
+package com.elearning.e_hub.module.user.service.impl;
 
 import com.elearning.e_hub.common.annotation.LogExecution;
 import com.elearning.e_hub.common.exception.AppException;
@@ -7,6 +7,7 @@ import com.elearning.e_hub.module.user.dto.UpdateUserRequest;
 import com.elearning.e_hub.module.user.dto.UserDto;
 import com.elearning.e_hub.module.user.entity.User;
 import com.elearning.e_hub.module.user.repository.UserRepository;
+import com.elearning.e_hub.module.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

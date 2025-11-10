@@ -4,15 +4,15 @@ public enum ErrorCode {
     // Auth errors
     INVALID_CREDENTIALS(401, "auth.invalid_credentials"),
     TOKEN_EXPIRED(401, "auth.token_expired"),
-    INVALID_TOKEN(401, "auth.invalid_token"),
     // User errors
     USER_NOT_FOUND(404, "user.not_found"),
     EMAIL_ALREADY_EXISTS(409, "user.email_exists"),
     // Course errors
     COURSE_NOT_FOUND(404, "course.not_found"),
     UNAUTHORIZED_ACCESS(403, "course.unauthorized"),
+    CHAPTER_NOT_FOUND(404, "chapter.not_found"),
+    LESSON_NOT_FOUND(404, "lesson.not_found"),
     // Common errors
-    VALIDATION_ERROR(400, "common.validation_error"),
     INTERNAL_ERROR(500, "common.internal_error");
 
     private final int status;
