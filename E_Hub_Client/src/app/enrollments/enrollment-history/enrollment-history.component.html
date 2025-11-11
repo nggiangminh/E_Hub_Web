@@ -1,0 +1,337 @@
+<!-- Enrollment History Component -->
+<div class="enrollment-history-page">
+  <!-- Header Section -->
+  <div class="page-header">
+    <button class="back-btn" (click)="goBack()">
+      <i class="icon">←</i>
+      QUAY LẠI
+    </button>
+    <div class="header-content">
+      <h1 class="page-title">LỊCH SỬ ĐĂNG KÝ</h1>
+      <p class="page-subtitle">Theo dõi toàn bộ lịch sử đăng ký và hoạt động học tập</p>
+    </div>
+    <div class="header-stats">
+      <div class="stat-item">
+        <span class="stat-number">{{ totalEnrollments }}</span>
+        <span class="stat-label">TỔNG ĐĂNG KÝ</span>
+      </div>
+    </div>
+    </div>
+
+  <!-- Filter Controls -->
+  <div class="filter-section">
+    <div class="filter-controls">
+      <select class="filter-select" [(ngModel)]="statusFilter" (change)="applyFilters()">
+        <option value="">TẤT CẢ TRẠNG THÁI</option>
+        <option value="ACTIVE">ACTIVE</option>
+        <option value="COMPLETED">HOÀN THÀNH</option>
+        <option value="CANCELLED">ĐÃ HỦY</option>
+      </select>
+
+      <select class="filter-select" [(ngModel)]="timeFilter" (change)="applyFilters()">
+        <option value="">TẤT CẢ THỜI GIAN</option>
+        <option value="thisMonth">THÁNG NÀY</option>
+        <option value="lastMonth">THÁNG TRƯỚC</option>
+        <option value="thisYear">NĂM NAY</option>
+        <option value="lastYear">NĂM TRƯỚC</option>
+      </select>
+
+      <select class="filter-select" [(ngModel)]="categoryFilter" (change)="applyFilters()">
+        <option value="">TẤT CẢ DANH MỤC</option>
+        <option value="Lập trình">LẬP TRÌNH</option>
+        <option value="Design">THIẾT KẾ</option>
+        <option value="Marketing">MARKETING</option>
+        <option value="Business">KINH DOANH</option>
+      </select>
+
+      <button class="export-btn" (click)="exportHistory()">
+        <i class="icon">📊</i>
+        XUẤT BÁO CÁO
+      </button>
+    </div>
+
+    <div class="summary-stats">
+      <div class="summary-card active">
+        <div class="summary-icon">🎯</div>
+        <div class="summary-info">
+          <span class="summary-number">{{ getActiveCount() }}</span>
+          <span class="summary-label">ACTIVE</span>
+        </div>
+      </div>
+      <div class="summary-card completed">
+        <div class="summary-icon">🏆</div>
+        <div class="summary-info">
+          <span class="summary-number">{{ getCompletedCount() }}</span>
+          <span class="summary-label">COMPLETED</span>
+        </div>
+      </div>
+      <div class="summary-card cancelled">
+        <div class="summary-icon">❌</div>
+        <div class="summary-info">
+          <span class="summary-number">{{ getCancelledCount() }}</span>
+          <span class="summary-label">Đã hủy</span>
+        </div>
+      </div>
+      <div class="summary-card total-time">
+        <div class="summary-icon">⏰</div>
+        <div class="summary-info">
+          <span class="summary-number">{{ getTotalStudyTime() }}h</span>
+          <span class="summary-label">Tổng giờ học</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline View -->
+  <div class="timeline-container">
+    <div class="timeline-header">
+      <h3 class="timeline-title">
+        <i class="icon">📅</i>
+        DÒNG THỜI GIAN ĐĂNG KÝ
+      </h3>
+      <div class="view-toggle">
+        <button 
+          class="toggle-btn"
+          [class.active]="viewMode === 'timeline'"
+          (click)="setViewMode('timeline')"
+        >
+          <i class="icon">📅</i>
+          TIMELINE
+        </button>
+        <button 
+          class="toggle-btn"
+          [class.active]="viewMode === 'grid'"
+          (click)="setViewMode('grid')"
+        >
+          <i class="icon">📊</i>
+          GRID
+        </button>
+      </div>
+    </div>
+
+    <!-- Timeline View -->
+    <div class="timeline-view" *ngIf="viewMode === 'timeline'">
+      <div class="timeline-line"></div>
+      <div 
+        class="timeline-item" 
+        *ngFor="let entry of filteredHistory; let i = index"
+        [class]="entry.status.toLowerCase()"
+      >
+        <div class="timeline-marker">
+          <div class="marker-dot"></div>
+          <div class="marker-date">{{ formatDate(entry.date) }}</div>
+        </div>
+        
+        <div class="timeline-content">
+          <div class="timeline-card">
+            <div class="card-header">
+              <div class="course-thumbnail">
+                <img [src]="entry.course.thumbnail" [alt]="entry.course.title">
+                <div class="status-badge" [class]="entry.status.toLowerCase()">
+                  {{ getStatusText(entry.status) }}
+                </div>
+              </div>
+              <div class="course-info">
+                <h4 class="course-title">{{ entry.course.title }}</h4>
+                <p class="course-instructor">{{ entry.course.instructor }}</p>
+                <div class="entry-details">
+                  <span class="entry-type">{{ getActionText(entry.action) }}</span>
+                  <span class="entry-time">{{ formatTime(entry.date) }}</span>
+                </div>
+              </div>
+              <div class="entry-price" *ngIf="entry.amount">
+                <span class="price-amount">{{ formatPrice(entry.amount) }}</span>
+                <span class="price-label">Đã thanh toán</span>
+              </div>
+            </div>
+
+            <div class="card-body" *ngIf="entry.description">
+              <p class="entry-description">{{ entry.description }}</p>
+            </div>
+
+            <div class="card-actions" *ngIf="entry.status === 'ACTIVE'">
+              <button 
+                class="btn btn-small btn-primary"
+                [routerLink]="['/courses', entry.course.id]"
+              >
+                <i class="icon">📚</i>
+                XEM KHÓA HỌC
+              </button>
+              <button 
+                class="btn btn-small btn-secondary"
+                [routerLink]="['/enrollments', entry.id]"
+              >
+                <i class="icon">📊</i>
+                CHI TIẾT
+              </button>
+            </div>
+
+            <div class="progress-section" *ngIf="entry.progress !== undefined">
+              <div class="progress-info">
+                <span class="progress-label">Tiến độ:</span>
+                <span class="progress-percentage">{{ entry.progress }}%</span>
+              </div>
+              <div class="progress-bar">
+                <div 
+                  class="progress-fill"
+                  [style.width.%]="entry.progress"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grid View -->
+    <div class="grid-view" *ngIf="viewMode === 'grid'">
+      <div class="history-grid">
+        <div 
+          class="history-card"
+          *ngFor="let entry of filteredHistory"
+          [class]="entry.status.toLowerCase()"
+        >
+          <div class="card-header">
+            <div class="course-image">
+              <img [src]="entry.course.thumbnail" [alt]="entry.course.title">
+              <div class="status-overlay" [class]="entry.status.toLowerCase()">
+                {{ getStatusText(entry.status) }}
+              </div>
+            </div>
+          </div>
+
+          <div class="card-content">
+            <h4 class="course-title">{{ entry.course.title }}</h4>
+            <p class="course-instructor">{{ entry.course.instructor }}</p>
+            
+            <div class="entry-meta">
+              <div class="meta-row">
+                <span class="meta-label">Hành động:</span>
+                <span class="meta-value">{{ getActionText(entry.action) }}</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">Ngày:</span>
+                <span class="meta-value">{{ formatDate(entry.date) }}</span>
+              </div>
+              <div class="meta-row" *ngIf="entry.amount">
+                <span class="meta-label">Số tiền:</span>
+                <span class="meta-value price">{{ formatPrice(entry.amount) }}</span>
+              </div>
+              <div class="meta-row" *ngIf="entry.progress !== undefined">
+                <span class="meta-label">Tiến độ:</span>
+                <span class="meta-value">{{ entry.progress }}%</span>
+              </div>
+            </div>
+
+            <div class="progress-bar" *ngIf="entry.progress !== undefined">
+              <div 
+                class="progress-fill"
+                [style.width.%]="entry.progress"
+              ></div>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            <button 
+              class="btn btn-small btn-outline"
+              [routerLink]="['/courses', entry.course.id]"
+              *ngIf="entry.status === 'ACTIVE'"
+            >
+              XEM KHÓA HỌC
+            </button>
+            <button 
+              class="btn btn-small btn-primary"
+              [routerLink]="['/enrollments', entry.id]"
+              *ngIf="entry.status === 'ACTIVE'"
+            >
+              CHI TIẾT
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="filteredHistory.length === 0">
+    <div class="empty-icon">📝</div>
+    <h3 class="empty-title">CHƯA CÓ LỊCH SỬ</h3>
+    <p class="empty-message">
+      Không tìm thấy lịch sử đăng ký nào phù hợp với bộ lọc của bạn.
+    </p>
+    <button class="btn btn-primary" (click)="resetFilters()">
+      <i class="icon">🔄</i>
+      ĐẶT LẠI BỘ LỌC
+    </button>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-container" *ngIf="filteredHistory.length > itemsPerPage">
+    <div class="pagination-info">
+      Hiển thị {{ (currentPage - 1) * itemsPerPage + 1 }}-{{ Math.min(currentPage * itemsPerPage, filteredHistory.length) }}
+      trong tổng số {{ filteredHistory.length }} bản ghi
+    </div>
+    <div class="pagination">
+      <button
+        class="btn btn-outline"
+        [disabled]="currentPage === 1"
+        (click)="goToPage(currentPage - 1)"
+      >
+        ◀️ TRƯỚC
+      </button>
+      <button
+        class="btn"
+        *ngFor="let page of getPageNumbers()"
+        [class.active]="page === currentPage"
+        (click)="goToPage(page)"
+      >
+        {{ page }}
+      </button>
+      <button
+        class="btn btn-outline"
+        [disabled]="currentPage === totalPages"
+        (click)="goToPage(currentPage + 1)"
+      >
+        SAU ▶️
+      </button>
+    </div>
+  </div>
+
+  <!-- Quick Statistics Panel -->
+  <div class="quick-stats-panel">
+    <h3 class="panel-title">
+      <i class="icon">📈</i>
+      THỐNG KÊ NHANH
+    </h3>
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-icon">📚</div>
+        <div class="stat-info">
+          <span class="stat-number">{{ getMonthlyEnrollments() }}</span>
+          <span class="stat-label">Đăng ký tháng này</span>
+        </div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-icon">💰</div>
+        <div class="stat-info">
+          <span class="stat-number">{{ formatPrice(getTotalSpent()) }}</span>
+          <span class="stat-label">Tổng chi tiêu</span>
+        </div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-info">
+          <span class="stat-number">{{ getAverageProgress() }}%</span>
+          <span class="stat-label">Tiến độ trung bình</span>
+        </div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-info">
+          <span class="stat-number">{{ getLongestStreak() }}</span>
+          <span class="stat-label">Chuỗi học dài nhất</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

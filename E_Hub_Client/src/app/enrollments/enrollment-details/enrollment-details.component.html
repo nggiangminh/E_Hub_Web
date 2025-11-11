@@ -1,0 +1,332 @@
+<!-- Enrollment Details Component -->
+<div class="enrollment-details-page">
+  <!-- Header Section -->
+  <div class="page-header">
+    <button class="back-btn" (click)="goBack()">
+      <i class="icon">←</i>
+      QUAY LẠI
+    </button>
+    <div class="header-content">
+      <h1 class="page-title">CHI TIẾT ĐĂNG KÝ</h1>
+      <div class="enrollment-badge" [class]="enrollment?.status?.toLowerCase()">
+        {{ enrollment?.status === 'ACTIVE' ? 'ACTIVE' : 'COMPLETED' }}
+      </div>
+    </div>
+    <div class="header-actions">
+      <button 
+        class="btn btn-primary"
+        [routerLink]="['/courses', enrollment?.course?.id, 'lessons', enrollment?.nextLessonId]"
+        *ngIf="enrollment?.status === 'ACTIVE' && enrollment?.nextLessonId"
+      >
+        <i class="icon">▶️</i>
+        TIẾP TỤC HỌC
+      </button>
+    </div>
+  </div>
+
+  <div class="content-container" *ngIf="enrollment">
+    <!-- Course Overview Card -->
+    <div class="course-overview-card">
+      <div class="course-thumbnail">
+        <img [src]="enrollment.course.thumbnail" [alt]="enrollment.course.title">
+        <div class="progress-overlay">
+          <div class="progress-circle-large">
+            <svg class="progress-ring" width="120" height="120">
+              <circle
+                class="progress-ring-circle"
+                stroke="currentColor"
+                stroke-width="8"
+                fill="transparent"
+                r="52"
+                cx="60"
+                cy="60"
+                [style.stroke-dasharray]="2 * Math.PI * 52"
+                [style.stroke-dashoffset]="2 * Math.PI * 52 * (1 - enrollment.progress / 100)"
+              />
+            </svg>
+            <div class="progress-text-large">
+              <span class="percentage">{{ enrollment.progress }}%</span>
+              <span class="label">HOÀN THÀNH</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="course-info">
+        <h2 class="course-title">{{ enrollment.course.title }}</h2>
+        <p class="course-instructor">
+          <i class="icon">👨‍🏫</i>
+          Giảng viên: {{ enrollment.course.instructor }}
+        </p>
+        <p class="course-description">{{ enrollment.course.description }}</p>
+        
+        <div class="course-meta">
+          <div class="meta-grid">
+            <div class="meta-item">
+              <i class="icon">📅</i>
+              <span class="meta-label">Ngày đăng ký:</span>
+              <span class="meta-value">{{ formatDate(enrollment.enrolledAt) }}</span>
+            </div>
+            <div class="meta-item" *ngIf="enrollment.lastAccessed">
+              <i class="icon">👁️</i>
+              <span class="meta-label">Truy cập cuối:</span>
+              <span class="meta-value">{{ formatDate(enrollment.lastAccessed) }}</span>
+            </div>
+            <div class="meta-item">
+              <i class="icon">📚</i>
+              <span class="meta-label">Bài học:</span>
+              <span class="meta-value">{{ enrollment.completedLessons }}/{{ enrollment.totalLessons }}</span>
+            </div>
+            <div class="meta-item">
+              <i class="icon">⏱️</i>
+              <span class="meta-label">Thời gian học:</span>
+              <span class="meta-value">{{ enrollment.studyTime }} giờ</span>
+            </div>
+            <div class="meta-item">
+              <i class="icon">🎯</i>
+              <span class="meta-label">Cấp độ:</span>
+              <span class="meta-value">{{ getLevelText(enrollment.course.level) }}</span>
+            </div>
+            <div class="meta-item">
+              <i class="icon">📂</i>
+              <span class="meta-label">Danh mục:</span>
+              <span class="meta-value">{{ enrollment.course.category }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="details-grid">
+      <!-- Progress Statistics -->
+      <div class="progress-stats-card">
+        <h3 class="card-title">
+          <i class="icon">📊</i>
+          THỐNG KÊ TIẾN ĐỘ
+        </h3>
+        
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-info">
+              <div class="stat-number">{{ enrollment.progress }}%</div>
+              <div class="stat-label">Hoàn thành</div>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">📚</div>
+            <div class="stat-info">
+              <div class="stat-number">{{ enrollment.completedLessons }}</div>
+              <div class="stat-label">Bài đã học</div>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">⏰</div>
+            <div class="stat-info">
+              <div class="stat-number">{{ enrollment.studyTime }}h</div>
+              <div class="stat-label">Thời gian</div>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">🏆</div>
+            <div class="stat-info">
+              <div class="stat-number">{{ achievements.length }}</div>
+              <div class="stat-label">Thành tích</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-section">
+          <div class="progress-header">
+            <span class="progress-label">TIẾN ĐỘ TỔNG QUAN</span>
+            <span class="progress-percentage">{{ enrollment.progress }}%</span>
+          </div>
+          <div class="progress-bar">
+            <div 
+              class="progress-fill" 
+              [style.width.%]="enrollment.progress"
+            ></div>
+          </div>
+          <div class="progress-milestones">
+            <div class="milestone" [class.completed]="enrollment.progress >= 25">25%</div>
+            <div class="milestone" [class.completed]="enrollment.progress >= 50">50%</div>
+            <div class="milestone" [class.completed]="enrollment.progress >= 75">75%</div>
+            <div class="milestone" [class.completed]="enrollment.progress >= 100">100%</div>
+          </div>
+        </div>
+
+        <!-- Study Streak -->
+        <div class="study-streak" *ngIf="studyStreak > 0">
+          <div class="streak-icon">🔥</div>
+          <div class="streak-info">
+            <div class="streak-number">{{ studyStreak }}</div>
+            <div class="streak-label">NGÀY LIÊN TỤC</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Learning Path -->
+      <div class="learning-path-card">
+        <h3 class="card-title">
+          <i class="icon">🗺️</i>
+          LỘ TRÌNH HỌC TẬP
+        </h3>
+        
+        <div class="chapters-list">
+          <div 
+            class="chapter-item" 
+            *ngFor="let chapter of chapters; let i = index"
+            [class.completed]="chapter.completed"
+            [class.current]="chapter.isCurrent"
+          >
+            <div class="chapter-header" (click)="toggleChapter(chapter)">
+              <div class="chapter-status">
+                <i class="icon" 
+                   [class]="chapter.completed ? 'completed' : chapter.isCurrent ? 'current' : 'pending'">
+                  {{ chapter.completed ? '✅' : chapter.isCurrent ? '▶️' : '⏳' }}
+                </i>
+              </div>
+              <div class="chapter-info">
+                <h4 class="chapter-title">{{ chapter.title }}</h4>
+                <p class="chapter-progress">{{ chapter.completedLessons }}/{{ chapter.totalLessons }} bài học</p>
+              </div>
+              <div class="chapter-toggle">
+                <i class="icon">{{ chapter.expanded ? '▼' : '▶' }}</i>
+              </div>
+            </div>
+
+            <div class="lessons-list" *ngIf="chapter.expanded">
+              <div 
+                class="lesson-item" 
+                *ngFor="let lesson of chapter.lessons"
+                [class.completed]="lesson.completed"
+                [class.current]="lesson.isCurrent"
+              >
+                <div class="lesson-status">
+                  <i class="icon">{{ lesson.completed ? '✅' : lesson.isCurrent ? '▶️' : '⏳' }}</i>
+                </div>
+                <div class="lesson-info">
+                  <span class="lesson-title">{{ lesson.title }}</span>
+                  <span class="lesson-duration">{{ lesson.duration }} phút</span>
+                </div>
+                <button 
+                  class="lesson-action"
+                  [routerLink]="['/courses', enrollment.course.id, 'lessons', lesson.id]"
+                  [disabled]="!lesson.accessible"
+                >
+                  {{ lesson.completed ? 'XEM LẠI' : lesson.isCurrent ? 'TIẾP TỤC' : 'KHÓA' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Achievements -->
+      <div class="achievements-card">
+        <h3 class="card-title">
+          <i class="icon">🏆</i>
+          THÀNH TÍCH ĐẠT ĐƯỢC
+        </h3>
+        
+        <div class="achievements-grid">
+          <div 
+            class="achievement-item" 
+            *ngFor="let achievement of achievements"
+            [class.unlocked]="achievement.unlocked"
+          >
+            <div class="achievement-icon">{{ achievement.icon }}</div>
+            <div class="achievement-info">
+              <h4 class="achievement-title">{{ achievement.title }}</h4>
+              <p class="achievement-description">{{ achievement.description }}</p>
+              <div class="achievement-date" *ngIf="achievement.unlockedAt">
+                Đạt được: {{ formatDate(achievement.unlockedAt) }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Study Calendar -->
+      <div class="study-calendar-card">
+        <h3 class="card-title">
+          <i class="icon">📅</i>
+          LỊCH HỌC TẬP
+        </h3>
+        
+        <div class="calendar-stats">
+          <div class="calendar-stat">
+            <span class="stat-number">{{ getStudyDaysThisMonth() }}</span>
+            <span class="stat-label">Ngày học tháng này</span>
+          </div>
+          <div class="calendar-stat">
+            <span class="stat-number">{{ studyStreak }}</span>
+            <span class="stat-label">Ngày liên tục</span>
+          </div>
+        </div>
+
+        <div class="calendar-grid">
+          <div 
+            class="calendar-day" 
+            *ngFor="let day of calendarDays"
+            [class.has-study]="day.hasStudy"
+            [class.today]="day.isToday"
+            [title]="day.studyTime ? day.studyTime + ' phút học' : ''"
+          >
+            {{ day.day }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-section">
+      <button 
+        class="btn btn-primary"
+        [routerLink]="['/courses', enrollment.course.id]"
+      >
+        <i class="icon">🏠</i>
+        TRANG KHÓA HỌC
+      </button>
+      <button 
+        class="btn btn-secondary"
+        [routerLink]="['/courses', enrollment.course.id, 'lessons', enrollment.nextLessonId]"
+        *ngIf="enrollment.status === 'ACTIVE' && enrollment.nextLessonId"
+      >
+        <i class="icon">▶️</i>
+        TIẾP TỤC HỌC
+      </button>
+      <button 
+        class="btn btn-accent"
+        (click)="downloadCertificate()"
+        *ngIf="enrollment.status === 'COMPLETED'"
+      >
+        <i class="icon">🏆</i>
+        TẢI CHỨNG CHỈ
+      </button>
+      <button 
+        class="btn btn-outline"
+        (click)="shareProgress()"
+      >
+        <i class="icon">📤</i>
+        CHIA SẺ TIẾN ĐỘ
+      </button>
+      <button 
+        class="btn btn-outline"
+        (click)="exportProgressReport()"
+      >
+        <i class="icon">📊</i>
+        XUẤT BÁO CÁO
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="!enrollment">
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p>ĐANG TẢI THÔNG TIN...</p>
+    </div>
+  </div>
+</div>

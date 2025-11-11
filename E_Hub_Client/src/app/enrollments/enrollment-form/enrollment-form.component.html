@@ -1,0 +1,389 @@
+<!-- Enrollment Form Component -->
+<div class="enrollment-form-page">
+  <!-- Header Section -->
+  <div class="page-header">
+    <button class="back-btn" (click)="goBack()">
+      <i class="icon">←</i>
+      QUAY LẠI
+    </button>
+    <div class="header-content">
+      <h1 class="page-title">ĐĂNG KÝ KHÓA HỌC</h1>
+      <p class="page-subtitle">Tham gia khóa học và bắt đầu hành trình học tập</p>
+    </div>
+    <div class="course-preview-mini" *ngIf="selectedCourse">
+      <img [src]="selectedCourse.thumbnail" [alt]="selectedCourse.title">
+      <span class="course-title">{{ selectedCourse.title }}</span>
+    </div>
+  </div>
+
+  <div class="content-container" *ngIf="selectedCourse">
+    <div class="enrollment-container">
+      <!-- Course Summary Card -->
+      <div class="course-summary-card">
+        <div class="course-image">
+          <img [src]="selectedCourse.thumbnail" [alt]="selectedCourse.title">
+          <div class="course-badge" [class]="selectedCourse.level.toLowerCase()">
+            {{ getLevelText(selectedCourse.level) }}
+          </div>
+          <div class="price-badge">
+            <span class="price">{{ formatPrice(selectedCourse.price) }}</span>
+            <span class="original-price" *ngIf="selectedCourse.originalPrice">
+              {{ formatPrice(selectedCourse.originalPrice) }}
+            </span>
+          </div>
+        </div>
+        
+        <div class="course-info">
+          <h2 class="course-title">{{ selectedCourse.title }}</h2>
+          <p class="course-instructor">
+            <i class="icon">👨‍🏫</i>
+            {{ selectedCourse.instructor }}
+          </p>
+          <p class="course-description">{{ selectedCourse.description }}</p>
+          
+          <div class="course-highlights">
+            <div class="highlight-item">
+              <i class="icon">📚</i>
+              <span>{{ selectedCourse.totalLessons }} bài học</span>
+            </div>
+            <div class="highlight-item">
+              <i class="icon">⏱️</i>
+              <span>{{ selectedCourse.duration }} giờ</span>
+            </div>
+            <div class="highlight-item">
+              <i class="icon">🏆</i>
+              <span>Chứng chỉ hoàn thành</span>
+            </div>
+            <div class="highlight-item">
+              <i class="icon">♾️</i>
+              <span>Truy cập vĩnh viễn</span>
+            </div>
+          </div>
+
+          <div class="course-rating" *ngIf="selectedCourse.rating">
+            <div class="rating-stars">
+              <span class="star" *ngFor="let star of getRatingStars(selectedCourse.rating)" [class.filled]="star">⭐</span>
+            </div>
+            <span class="rating-score">{{ selectedCourse.rating }}/5</span>
+            <span class="rating-count">({{ selectedCourse.reviewCount }} đánh giá)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Enrollment Form -->
+      <div class="enrollment-form-card">
+        <h3 class="form-title">
+          <i class="icon">📝</i>
+          THÔNG TIN ĐĂNG KÝ
+        </h3>
+
+        <form #enrollmentForm="ngForm" (ngSubmit)="onSubmit(enrollmentForm)" class="enrollment-form">
+          <!-- Personal Information -->
+          <div class="form-section">
+            <h4 class="section-title">THÔNG TIN CÁ NHÂN</h4>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Họ và tên *</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  [(ngModel)]="formData.fullName"
+                  name="fullName"
+                  required
+                  placeholder="Nhập họ và tên đầy đủ"
+                  #fullName="ngModel"
+                >
+                <div class="error-message" *ngIf="fullName.invalid && fullName.touched">
+                  Vui lòng nhập họ và tên
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Email *</label>
+                <input
+                  type="email"
+                  class="form-input"
+                  [(ngModel)]="formData.email"
+                  name="email"
+                  required
+                  email
+                  placeholder="example@email.com"
+                  #email="ngModel"
+                >
+                <div class="error-message" *ngIf="email.invalid && email.touched">
+                  <span *ngIf="email.errors?.['required']">Vui lòng nhập email</span>
+                  <span *ngIf="email.errors?.['email']">Email không hợp lệ</span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Số điện thoại *</label>
+                <input
+                  type="tel"
+                  class="form-input"
+                  [(ngModel)]="formData.phone"
+                  name="phone"
+                  required
+                  placeholder="0123456789"
+                  pattern="[0-9]{10,11}"
+                  #phone="ngModel"
+                >
+                <div class="error-message" *ngIf="phone.invalid && phone.touched">
+                  <span *ngIf="phone.errors?.['required']">Vui lòng nhập số điện thoại</span>
+                  <span *ngIf="phone.errors?.['pattern']">Số điện thoại không hợp lệ</span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Nghề nghiệp</label>
+                <select class="form-select" [(ngModel)]="formData.occupation" name="occupation">
+                  <option value="">Chọn nghề nghiệp</option>
+                  <option value="student">Học sinh/Sinh viên</option>
+                  <option value="developer">Lập trình viên</option>
+                  <option value="designer">Thiết kế</option>
+                  <option value="manager">Quản lý</option>
+                  <option value="freelancer">Freelancer</option>
+                  <option value="other">Khác</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Learning Goals -->
+          <div class="form-section">
+            <h4 class="section-title">MỤC TIÊU HỌC TẬP</h4>
+            <div class="form-group">
+              <label class="form-label">Mục tiêu của bạn khi tham gia khóa học này?</label>
+              <textarea
+                class="form-textarea"
+                [(ngModel)]="formData.learningGoals"
+                name="learningGoals"
+                rows="4"
+                placeholder="Chia sẻ mục tiêu học tập của bạn (không bắt buộc)"
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Kinh nghiệm trước đó</label>
+              <div class="radio-group">
+                <label class="radio-option">
+                  <input
+                    type="radio"
+                    name="experience"
+                    value="beginner"
+                    [(ngModel)]="formData.experience"
+                  >
+                  <span class="radio-custom"></span>
+                  Người mới bắt đầu
+                </label>
+                <label class="radio-option">
+                  <input
+                    type="radio"
+                    name="experience"
+                    value="intermediate"
+                    [(ngModel)]="formData.experience"
+                  >
+                  <span class="radio-custom"></span>
+                  Có kinh nghiệm cơ bản
+                </label>
+                <label class="radio-option">
+                  <input
+                    type="radio"
+                    name="experience"
+                    value="advanced"
+                    [(ngModel)]="formData.experience"
+                  >
+                  <span class="radio-custom"></span>
+                  Có kinh nghiệm nâng cao
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Section -->
+          <div class="form-section">
+            <h4 class="section-title">THÔNG TIN THANH TOÁN</h4>
+            
+            <!-- Pricing Summary -->
+            <div class="pricing-summary">
+              <div class="price-row">
+                <span class="price-label">Giá khóa học:</span>
+                <span class="price-value">{{ formatPrice(selectedCourse.price) }}</span>
+              </div>
+              <div class="price-row" *ngIf="selectedDiscount">
+                <span class="price-label">Giảm giá ({{ selectedDiscount.code }}):</span>
+                <span class="price-value discount">-{{ formatPrice(getDiscountAmount()) }}</span>
+              </div>
+              <div class="price-row total">
+                <span class="price-label">Tổng thanh toán:</span>
+                <span class="price-value">{{ formatPrice(getFinalPrice()) }}</span>
+              </div>
+            </div>
+
+            <!-- Discount Code -->
+            <div class="form-group">
+              <label class="form-label">Mã giảm giá</label>
+              <div class="discount-input">
+                <input
+                  type="text"
+                  class="form-input"
+                  [(ngModel)]="discountCode"
+                  name="discountCode"
+                  placeholder="Nhập mã giảm giá"
+                  [disabled]="!!selectedDiscount"
+                >
+                <button
+                  type="button"
+                  class="apply-discount-btn"
+                  (click)="applyDiscount()"
+                  [disabled]="!discountCode || !!selectedDiscount"
+                >
+                  {{ selectedDiscount ? 'ĐÃ ÁP DỤNG' : 'ÁP DỤNG' }}
+                </button>
+              </div>
+              <div class="success-message" *ngIf="selectedDiscount">
+                ✅ Đã áp dụng mã giảm giá: {{ selectedDiscount.description }}
+              </div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="form-group">
+              <label class="form-label">Phương thức thanh toán *</label>
+              <div class="payment-methods">
+                <label class="payment-option" *ngFor="let method of paymentMethods">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    [value]="method.id"
+                    [(ngModel)]="formData.paymentMethod"
+                    required
+                  >
+                  <div class="payment-card">
+                    <div class="payment-icon">{{ method.icon }}</div>
+                    <div class="payment-info">
+                      <span class="payment-name">{{ method.name }}</span>
+                      <span class="payment-desc">{{ method.description }}</span>
+                    </div>
+                    <div class="payment-badge" *ngIf="method.popular">HOT</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Terms and Conditions -->
+          <div class="form-section">
+            <div class="terms-section">
+              <label class="checkbox-group">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="formData.agreeTerms"
+                  name="agreeTerms"
+                  required
+                  #agreeTerms="ngModel"
+                >
+                <span class="checkbox-custom"></span>
+                <span class="checkbox-text">
+                  Tôi đồng ý với 
+                  <a href="#" class="terms-link" (click)="showTerms($event)">Điều khoản sử dụng</a>
+                  và 
+                  <a href="#" class="terms-link" (click)="showPrivacy($event)">Chính sách bảo mật</a>
+                </span>
+              </label>
+              <div class="error-message" *ngIf="agreeTerms.invalid && agreeTerms.touched">
+                Vui lòng đồng ý với điều khoản
+              </div>
+
+              <label class="checkbox-group">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="formData.subscribeNewsletter"
+                  name="subscribeNewsletter"
+                >
+                <span class="checkbox-custom"></span>
+                <span class="checkbox-text">
+                  Tôi muốn nhận thông báo về khóa học và ưu đãi mới
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline" (click)="goBack()">
+              <i class="icon">← </i>
+              HỦY ĐĂNG KÝ
+            </button>
+            <button 
+              type="submit" 
+              class="btn btn-primary"
+              [disabled]="enrollmentForm.invalid || isSubmitting"
+            >
+              <i class="icon">{{ isSubmitting ? '⏳' : '💳' }}</i>
+              {{ isSubmitting ? 'ĐANG XỬ LÝ...' : 'THANH TOÁN & ĐĂNG KÝ' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Security & Support Info -->
+    <div class="security-info">
+      <div class="security-badges">
+        <div class="security-badge">
+          <i class="icon">🔒</i>
+          <span>Thanh toán bảo mật SSL</span>
+        </div>
+        <div class="security-badge">
+          <i class="icon">🛡️</i>
+          <span>Thông tin được mã hóa</span>
+        </div>
+        <div class="security-badge">
+          <i class="icon">📞</i>
+          <span>Hỗ trợ 24/7</span>
+        </div>
+        <div class="security-badge">
+          <i class="icon">💯</i>
+          <span>Đảm bảo hoàn tiền</span>
+        </div>
+      </div>
+      
+      <div class="support-contact">
+        <p>Cần hỗ trợ? Liên hệ: <strong>hotline@ehub.com</strong> hoặc <strong>1900-1234</strong></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="!selectedCourse">
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p>ĐANG TẢI THÔNG TIN KHÓA HỌC...</p>
+    </div>
+  </div>
+
+  <!-- Terms Modal -->
+  <div class="modal-overlay" *ngIf="showTermsModal" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>ĐIỀU KHOẢN SỬ DỤNG</h3>
+        <button class="close-btn" (click)="closeModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="terms-content">
+          <h4>1. Điều khoản chung</h4>
+          <p>Bằng việc sử dụng dịch vụ, bạn đồng ý tuân thủ các điều khoản này.</p>
+          
+          <h4>2. Quyền sở hữu trí tuệ</h4>
+          <p>Tất cả nội dung khóa học thuộc bản quyền của E-Hub và các giảng viên.</p>
+          
+          <h4>3. Chính sách hoàn tiền</h4>
+          <p>Hoàn tiền 100% trong 30 ngày đầu nếu không hài lòng.</p>
+          
+          <h4>4. Trách nhiệm người dùng</h4>
+          <p>Không chia sẻ tài khoản hoặc nội dung khóa học cho bên thứ ba.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

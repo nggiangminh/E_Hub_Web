@@ -104,6 +104,41 @@ export const routes: Routes = [
     ]
   },
 
+  // Enrollment routes
+  {
+    path: 'enrollments',
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./enrollments/enrollment-list/enrollment-list.component').then(c => c.EnrollmentListComponent),
+        title: 'Khóa học của tôi - E-Learning Hub'
+        // TODO: Add authentication guard
+        // canActivate: [AuthGuard]
+      },
+      {
+        path: 'history',
+        loadComponent: () => import('./enrollments/enrollment-history/enrollment-history.component').then(c => c.EnrollmentHistoryComponent),
+        title: 'Lịch sử đăng ký - E-Learning Hub'
+        // TODO: Add authentication guard
+        // canActivate: [AuthGuard]
+      },
+      {
+        path: 'enroll/:courseId',
+        loadComponent: () => import('./enrollments/enrollment-form/enrollment-form.component').then(c => c.EnrollmentFormComponent),
+        title: 'Đăng ký khóa học - E-Learning Hub'
+        // TODO: Add authentication guard
+        // canActivate: [AuthGuard]
+      },
+      {
+        path: ':id',
+        loadComponent: () => import('./enrollments/enrollment-details/enrollment-details.component').then(c => c.EnrollmentDetailsComponent),
+        title: 'Chi tiết đăng ký - E-Learning Hub'
+        // TODO: Add authentication guard and enrollment owner check
+        // canActivate: [AuthGuard, EnrollmentOwnerGuard]
+      }
+    ]
+  },
+
   // Admin routes
   {
     path: 'admin',

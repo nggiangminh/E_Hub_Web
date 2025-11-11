@@ -1,0 +1,269 @@
+<!-- Enrollment List Component -->
+<div class="enrollment-page">
+  <!-- Header Section -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">MỤC LỤC KHÓA HỌC</h1>
+      <p class="page-subtitle">Quản lý các khóa học bạn đã đăng ký</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" routerLink="/courses">
+        <i class="icon">📚</i>
+        KHÁM PHÁ KHÓA HỌC
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card active">
+      <div class="stat-icon">🎯</div>
+      <div class="stat-info">
+        <div class="stat-number">{{ enrollmentStats.active }}</div>
+        <div class="stat-label">ACTIVE</div>
+      </div>
+    </div>
+    <div class="stat-card completed">
+      <div class="stat-icon">🏆</div>
+      <div class="stat-info">
+        <div class="stat-number">{{ enrollmentStats.completed }}</div>
+        <div class="stat-label">COMPLETED</div>
+      </div>
+    </div>
+    <div class="stat-card progress">
+      <div class="stat-icon">📊</div>
+      <div class="stat-info">
+        <div class="stat-number">{{ enrollmentStats.totalProgress }}%</div>
+        <div class="stat-label">TIẾN ĐỘCH CHUNG</div>
+      </div>
+    </div>
+    <div class="stat-card time">
+      <div class="stat-icon">⏰</div>
+      <div class="stat-info">
+        <div class="stat-number">{{ enrollmentStats.totalHours }}h</div>
+        <div class="stat-label">TỔNG THỜI GIAN</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter and Search -->
+  <div class="filter-section">
+    <div class="search-container">
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Tìm kiếm khóa học..."
+        [(ngModel)]="searchTerm"
+        (input)="filterEnrollments()"
+      >
+      <button class="search-btn">
+        <i class="icon">🔍</i>
+      </button>
+    </div>
+
+    <div class="filter-controls">
+      <select class="filter-select" [(ngModel)]="statusFilter" (change)="filterEnrollments()">
+        <option value="">TẤT CẢ TRẠNG THÁI</option>
+        <option value="ACTIVE">ACTIVE</option>
+        <option value="COMPLETED">COMPLETED</option>
+      </select>
+
+      <select class="filter-select" [(ngModel)]="progressFilter" (change)="filterEnrollments()">
+        <option value="">TẤT CẢ TIẾN ĐỘ</option>
+        <option value="0-25">0-25%</option>
+        <option value="25-50">25-50%</option>
+        <option value="50-75">50-75%</option>
+        <option value="75-100">75-100%</option>
+      </select>
+
+      <select class="filter-select" [(ngModel)]="sortBy" (change)="sortEnrollments()">
+        <option value="enrolledAt">MỚI NHẤT</option>
+        <option value="progress">TIẾN ĐỘ</option>
+        <option value="title">TÊN KHÓA HỌC</option>
+        <option value="lastAccessed">TRUY CẬP GẦN ĐÂY</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Enrollment Grid -->
+  <div class="enrollment-grid" *ngIf="filteredEnrollments.length > 0">
+    <div
+      class="enrollment-card"
+      *ngFor="let enrollment of paginatedEnrollments"
+      [class.active]="enrollment.status === 'ACTIVE'"
+      [class.completed]="enrollment.status === 'COMPLETED'"
+    >
+      <!-- Course Thumbnail -->
+      <div class="course-thumbnail">
+        <img [src]="enrollment.course.thumbnail" [alt]="enrollment.course.title">
+        <div class="course-badge" [class]="enrollment.status.toLowerCase()">
+          {{ enrollment.status === 'ACTIVE' ? 'ACTIVE' : 'COMPLETED' }}
+        </div>
+        <div class="progress-overlay">
+          <div class="progress-circle">
+            <svg class="progress-ring" width="60" height="60">
+              <circle
+                class="progress-ring-circle"
+                stroke="currentColor"
+                stroke-width="4"
+                fill="transparent"
+                r="26"
+                cx="30"
+                cy="30"
+                [style.stroke-dasharray]="2 * Math.PI * 26"
+                [style.stroke-dashoffset]="2 * Math.PI * 26 * (1 - enrollment.progress / 100)"
+              />
+            </svg>
+            <span class="progress-text">{{ enrollment.progress }}%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Course Info -->
+      <div class="course-info">
+        <h3 class="course-title">{{ enrollment.course.title }}</h3>
+        <p class="course-instructor">{{ enrollment.course.instructor }}</p>
+        
+        <div class="enrollment-meta">
+          <div class="meta-item">
+            <i class="icon">📅</i>
+            <span>Đăng ký: {{ formatDate(enrollment.enrolledAt) }}</span>
+          </div>
+          <div class="meta-item" *ngIf="enrollment.lastAccessed">
+            <i class="icon">👁️</i>
+            <span>Truy cập: {{ formatDate(enrollment.lastAccessed) }}</span>
+          </div>
+          <div class="meta-item">
+            <i class="icon">📚</i>
+            <span>{{ enrollment.completedLessons }}/{{ enrollment.totalLessons }} bài học</span>
+          </div>
+          <div class="meta-item">
+            <i class="icon">⏱️</i>
+            <span>{{ enrollment.studyTime }} giờ học</span>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-section">
+          <div class="progress-info">
+            <span class="progress-label">Tiến độ hoàn thành</span>
+            <span class="progress-percentage">{{ enrollment.progress }}%</span>
+          </div>
+          <div class="progress-bar">
+            <div
+              class="progress-fill"
+              [style.width.%]="enrollment.progress"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button
+            class="btn btn-primary"
+            [routerLink]="['/enrollments', enrollment.id]"
+          >
+            <i class="icon">📖</i>
+            XEM CHI TIẾT
+          </button>
+          <button
+            class="btn btn-secondary"
+            [routerLink]="['/courses', enrollment.course.id, 'lessons', enrollment.nextLessonId]"
+            *ngIf="enrollment.status === 'ACTIVE' && enrollment.nextLessonId"
+          >
+            <i class="icon">▶️</i>
+            TIẾP TỤC HỌC
+          </button>
+          <button
+            class="btn btn-accent"
+            [routerLink]="['/courses', enrollment.course.id]"
+          >
+            <i class="icon">🏠</i>
+            TRANG KHÓA HỌC
+          </button>
+          <button
+            class="btn btn-outline"
+            (click)="toggleFavorite(enrollment)"
+          >
+            <i class="icon">{{ enrollment.isFavorite ? '❤️' : '🤍' }}</i>
+            {{ enrollment.isFavorite ? 'BỎ YÊU THÍCH' : 'YÊU THÍCH' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="filteredEnrollments.length === 0">
+    <div class="empty-icon">📚</div>
+    <h3 class="empty-title">CHƯA CÓ KHÓA HỌC NÀO</h3>
+    <p class="empty-message">
+      <span *ngIf="searchTerm || statusFilter || progressFilter">
+        Không tìm thấy khóa học nào phù hợp với bộ lọc của bạn.
+      </span>
+      <span *ngIf="!searchTerm && !statusFilter && !progressFilter">
+        Bạn chưa đăng ký khóa học nào. Hãy khám phá các khóa học thú vị!
+      </span>
+    </p>
+    <button class="btn btn-primary" routerLink="/courses">
+      <i class="icon">🔍</i>
+      KHÁM PHÁ KHÓA HỌC
+    </button>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-container" *ngIf="filteredEnrollments.length > itemsPerPage">
+    <div class="pagination-info">
+      Hiển thị {{ (currentPage - 1) * itemsPerPage + 1 }}-{{ Math.min(currentPage * itemsPerPage, filteredEnrollments.length) }}
+      trong tổng số {{ filteredEnrollments.length }} khóa học
+    </div>
+    <div class="pagination">
+      <button
+        class="btn btn-outline"
+        [disabled]="currentPage === 1"
+        (click)="goToPage(currentPage - 1)"
+      >
+        ◀️ TRƯỚC
+      </button>
+      <button
+        class="btn"
+        *ngFor="let page of getPageNumbers()"
+        [class.active]="page === currentPage"
+        (click)="goToPage(page)"
+      >
+        {{ page }}
+      </button>
+      <button
+        class="btn btn-outline"
+        [disabled]="currentPage === totalPages"
+        (click)="goToPage(currentPage + 1)"
+      >
+        SAU ▶️
+      </button>
+    </div>
+  </div>
+
+  <!-- Quick Actions Floating Menu -->
+  <div class="quick-actions" [class.open]="showQuickActions">
+    <button
+      class="quick-action-toggle"
+      (click)="showQuickActions = !showQuickActions"
+    >
+      <i class="icon">{{ showQuickActions ? '✕' : '⚡' }}</i>
+    </button>
+    <div class="quick-action-items">
+      <button class="quick-action" (click)="exportProgress()">
+        <i class="icon">📊</i>
+        <span>Xuất báo cáo</span>
+      </button>
+      <button class="quick-action" routerLink="/enrollments/history">
+        <i class="icon">📜</i>
+        <span>Lịch sử đăng ký</span>
+      </button>
+      <button class="quick-action" (click)="resetFilters()">
+        <i class="icon">🔄</i>
+        <span>Đặt lại bộ lọc</span>
+      </button>
+    </div>
+  </div>
+</div>
